@@ -14,8 +14,8 @@ window.NIDOS_CONFIG = {
    * Si las dejás vacías, la landing funciona igual en "modo demo": guarda todo
    * en el navegador y podés bajar un CSV con Ctrl+Shift+D.
    * ------------------------------------------------------------------------ */
-  SUPABASE_URL: '',       // ej: 'https://abcdefgh.supabase.co'
-  SUPABASE_ANON_KEY: '',  // ej: 'eyJhbGciOi...'
+  SUPABASE_URL: 'https://lhccxddwazmcyjpggrzj.supabase.co', 
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoY2N4ZGR3YXptY3lqcGdncnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwODM2MzIsImV4cCI6MjEwMDY1OTYzMn0.WcEFTN3Hj1h-wOobUbvEFpMgaHhmAVx4sAma1COjECE',
 
   /* ---------------------------------------------------------------------------
    * 2. TEST A/B del mensaje del hero
