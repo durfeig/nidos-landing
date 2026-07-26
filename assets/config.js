@@ -1,0 +1,60 @@
+/* =============================================================================
+ * NIDOS · Configuración
+ * -----------------------------------------------------------------------------
+ * Lo único que necesitás editar para que la landing capture datos de verdad
+ * son las dos primeras líneas de SUPABASE.
+ * ========================================================================== */
+
+window.NIDOS_CONFIG = {
+
+  /* ---------------------------------------------------------------------------
+   * 1. SUPABASE  (obligatorio para capturar leads)
+   * Settings → API en tu proyecto. La anon key es pública y va acá sin riesgo:
+   * el esquema SQL solo le permite INSERT, no puede leer nada.
+   * Si las dejás vacías, la landing funciona igual en "modo demo": guarda todo
+   * en el navegador y podés bajar un CSV con Ctrl+Shift+D.
+   * ------------------------------------------------------------------------ */
+  SUPABASE_URL: '',       // ej: 'https://abcdefgh.supabase.co'
+  SUPABASE_ANON_KEY: '',  // ej: 'eyJhbGciOi...'
+
+  /* ---------------------------------------------------------------------------
+   * 2. TEST A/B del mensaje del hero
+   * 'auto'  → 50/50 estable por visitante (guardado en localStorage)
+   * 'A'     → fuerza el eje compañía (mockup original)
+   * 'B'     → fuerza el eje acceso (conclusión del Módulo 4)
+   * También podés forzarlo por URL para revisar: ?v=A  o  ?v=B
+   * ------------------------------------------------------------------------ */
+  AB_MODE: 'auto',
+
+  /* ---------------------------------------------------------------------------
+   * 3. SUPUESTOS ECONÓMICOS  (Doc #3 · actualizalos si cambia el tipo de cambio)
+   * Se usan para calcular en vivo los precios que ve cada persona según el
+   * presupuesto que declara, en lugar de mostrar un número abstracto.
+   * ------------------------------------------------------------------------ */
+  TC_USD: 1400,                    // ARS por USD (Doc #3, abril 2026)
+  PRECIO_SUSCRIPCION_USD: 15,      // suscripción mensual del buscador
+  PRECIO_VISIBILIDAD_USD: 12,      // plan de visibilidad del oferente
+  PRECIO_CONTRATO_USD: 25,         // contrato digital, flat
+  GARANTIA_PCT_ANUAL: 0.06,        // garantía digital: 6% del alquiler anual
+  MESES_ADELANTO_SIN_GARANTIA: 6,  // lo que hoy piden sin garantía propietaria
+
+  /* ---------------------------------------------------------------------------
+   * 4. ANALÍTICA  (opcional · dejá vacío lo que no uses)
+   * ------------------------------------------------------------------------ */
+  CLARITY_ID: '',      // Microsoft Clarity → Settings → Project ID
+  GA4_ID: '',          // ej: 'G-XXXXXXXXXX'
+  META_PIXEL_ID: '',   // ej: '1234567890'
+
+  /* ---------------------------------------------------------------------------
+   * 5. CONTACTO
+   * ------------------------------------------------------------------------ */
+  EMAIL_CONTACTO: 'hola@nidos.com.ar',
+
+  /* ---------------------------------------------------------------------------
+   * 6. CONTADOR DE LISTA DE ESPERA
+   * Número desde el que arranca la posición que se le muestra a cada persona.
+   * Dejalo en 0 para mostrar el conteo real y crudo. No inventes prueba social:
+   * si la campaña recién arranca, un número honesto es más creíble que uno alto.
+   * ------------------------------------------------------------------------ */
+  WAITLIST_OFFSET: 0
+};

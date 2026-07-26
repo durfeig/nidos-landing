@@ -1,0 +1,11 @@
+# Sitio estático puro: sin build, se publica la raíz del repo tal cual.
+[build]
+  publish = "."
+
+# Cabeceras de seguridad básicas
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
