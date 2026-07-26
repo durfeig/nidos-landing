@@ -192,3 +192,26 @@ from public.respuestas
 where clave like 'wtp_%'
 group by clave, valor
 order by clave, n desc;
+
+-- Loop de referidos: quién invitó a quién. El código de invitación es el tramo
+-- aleatorio del session_id de quien comparte (viaja en eventos.props->>'ref'),
+-- así que los pares se reconstruyen sin columnas nuevas en leads.
+create or replace view public.v_referidos as
+with capturas_referidas as (
+  select session_id, props->>'ref' as codigo, min(created_at) as capturado_at
+  from public.eventos
+  where nombre = 'lead_capturado' and props->>'ref' is not null
+  group by session_id, props->>'ref'
+)
+select
+  invitado.email      as invitado_email,
+  invitado.puerta     as invitado_puerta,
+  anfitrion.email     as invito_email,
+  anfitrion.puerta    as invito_puerta,
+  r.codigo,
+  r.capturado_at
+from capturas_referidas r
+join public.leads invitado on invitado.session_id = r.session_id
+left join public.leads anfitrion
+  on split_part(anfitrion.session_id, '_', 3) = r.codigo
+order by r.capturado_at desc;

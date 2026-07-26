@@ -42,6 +42,21 @@
     user_agent:   navigator.userAgent
   };
 
+  /* --- Referidos -------------------------------------------------------------
+   * MI_REF es el código que esta persona comparte (el tramo aleatorio de su
+   * session_id, así el par se reconstruye en SQL sin columnas nuevas).
+   * REF_ENTRANTE es el código de quien la invitó: viaja por ?ref=... y se
+   * recuerda en localStorage por si convierte en otra visita. */
+  const MI_REF = SESSION_ID.split('_')[2] || SESSION_ID.replace(/[^a-z0-9]/gi, '').slice(-8);
+  const REF_ENTRANTE = (function () {
+    let r = (qs.get('ref') || '').replace(/[^a-z0-9]/gi, '').slice(0, 16) || null;
+    try {
+      if (r) localStorage.setItem('nidos_ref', r);
+      else r = localStorage.getItem('nidos_ref');
+    } catch (e) {}
+    return r && r !== MI_REF ? r : null;
+  })();
+
   /* ===========================================================================
    * Persistencia
    * ======================================================================== */
@@ -685,29 +700,43 @@
         posicion +
         (resumen ? '<p class="gracias__resumen" style="margin-top:20px;font-size:14.5px;color:#8494A8">' +
           escapar(resumen) + '</p>' : '') +
+        '<div class="gracias__ref">' +
+          '<h3>¿Buscás con alguien? Entren juntos.</h3>' +
+          '<p>Los pares que se anotan juntos tienen prioridad cuando abre su zona: ' +
+             'ya resolvieron lo más difícil, que es <strong>con quién</strong> convivir.</p>' +
+          '<div class="ref-link">' +
+            '<span id="ref-url"></span>' +
+            '<button type="button" class="ref-link__btn" id="btn-copiar-ref">Copiar</button>' +
+          '</div>' +
+        '</div>' +
         '<div class="gracias__acciones">' +
-          '<button class="btn btn--primary btn--block" id="btn-compartir">' +
-            '<span>Compartir con alguien que esté buscando</span></button>' +
+          '<a class="btn btn--primary btn--block" id="btn-wsp" target="_blank" rel="noopener">' +
+            '<span>Invitar por WhatsApp</span></a>' +
           '<button class="btn btn--outline btn--block" data-close-modal>Volver a la página</button>' +
         '</div>' +
       '</div>';
 
-    const compartir = $('#btn-compartir');
-    if (compartir) compartir.addEventListener('click', async () => {
-      const datos = {
-        title: 'Nidos · Encontrá tu lugar, compartí tu vida',
-        text: 'Están armando una plataforma para compartir vivienda sin garantía propietaria. Dejá tus datos.',
-        url: location.origin + location.pathname
-      };
-      track('click_compartir');
+    // Link personal de invitación: reconstruye el par en los datos
+    const urlRef = location.origin + location.pathname + '?ref=' + MI_REF;
+    $('#ref-url').textContent = urlRef.replace(/^https?:\/\//, '');
+
+    $('#btn-copiar-ref').addEventListener('click', async () => {
+      track('click_compartir', { canal: 'copiar' });
       try {
-        if (navigator.share) await navigator.share(datos);
-        else {
-          await navigator.clipboard.writeText(datos.url);
-          avisar('Link copiado al portapapeles');
-        }
-      } catch (e) { /* el usuario canceló */ }
+        await navigator.clipboard.writeText(urlRef);
+        avisar('Link copiado. Pasáselo a quien quieras.');
+      } catch (e) {
+        avisar(urlRef); // si el portapapeles falla, al menos lo muestra
+      }
     });
+
+    const wsp = $('#btn-wsp');
+    wsp.href = 'https://wa.me/?text=' + encodeURIComponent(
+      'Me anoté en la lista de espera de Nidos, una plataforma para conseguir ' +
+      'vivienda compartida sin garantía propietaria. Si te anotás con mi link, ' +
+      'quedamos juntos en la lista: ' + urlRef
+    );
+    wsp.addEventListener('click', () => track('click_compartir', { canal: 'whatsapp' }));
   }
 
   /* ===========================================================================
@@ -760,6 +789,21 @@
   const formHero = $('#form-hero');
   const errorHero = $('#hero-error');
 
+  // Quien llega con un link de invitación lo ve reflejado en el formulario
+  if (REF_ENTRANTE) {
+    const aviso = document.createElement('p');
+    aviso.className = 'ref-banner';
+    aviso.innerHTML = 'Venís con una invitación: si te sumás, quedan ' +
+      '<strong>juntos en la lista</strong>.';
+    formHero.insertBefore(aviso, formHero.firstChild);
+    try {
+      if (!sessionStorage.getItem('nidos_ref_visto')) {
+        sessionStorage.setItem('nidos_ref_visto', '1');
+        track('landing_referida', { ref: REF_ENTRANTE });
+      }
+    } catch (e) {}
+  }
+
   function mostrarError(msg, campo) {
     errorHero.textContent = msg;
     errorHero.hidden = false;
@@ -802,7 +846,9 @@
       variant: VARIANT
     }, ATRIBUCION));
 
-    track('lead_capturado', { puerta: puerta });
+    track('lead_capturado', REF_ENTRANTE
+      ? { puerta: puerta, ref: REF_ENTRANTE }
+      : { puerta: puerta });
 
     boton.disabled = false;
     $('span', boton).textContent = 'Reservar mi lugar';
@@ -1012,6 +1058,7 @@
     variant: VARIANT,
     utm_source: ATRIBUCION.utm_source,
     utm_campaign: ATRIBUCION.utm_campaign,
+    ref: REF_ENTRANTE || undefined,
     ancho: window.innerWidth
   });
 
