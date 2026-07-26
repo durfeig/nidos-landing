@@ -6,6 +6,9 @@ dependencias**. Se sube tal cual a cualquier hosting estático.
 
 Proyecto del New Business Lab · MiM UdeSA · Grupo 29 (Matías Martinez, Diego Urfeig).
 
+**Producción:** https://nidos-landing.netlify.app
+**Repo:** https://github.com/durfeig/nidos-landing — cada push a `main` despliega automáticamente en Netlify.
+
 ---
 
 ## Qué mide
