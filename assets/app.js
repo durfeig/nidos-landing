@@ -891,6 +891,36 @@
       el.style.transitionDelay = Math.min(Math.max(idx, 0) * 70, 280) + 'ms';
       obsReveal.observe(el);
     });
+
+    // Las filas de la comparativa aparecen una por una
+    $$('.tabla tbody tr').forEach((tr, i) => {
+      tr.classList.add('reveal-fila');
+      tr.style.transitionDelay = (i * 80) + 'ms';
+      obsReveal.observe(tr);
+    });
+  }
+
+  /* Calculadora de garantía: los dos montos se recalculan con el alquiler
+     que declara la persona, igual que en el paso de precios del onboarding. */
+  const gAlquiler = $('#g-alquiler');
+  if (gAlquiler) {
+    const gValor = $('#g-valor'), gHoy = $('#g-hoy'), gNidos = $('#g-nidos');
+    const meses = CFG.MESES_ADELANTO_SIN_GARANTIA || 6;
+    const pct = CFG.GARANTIA_PCT_ANUAL || 0.06;
+    let gTrackeado = false;
+
+    const actualizarGarantia = () => {
+      const v = Number(gAlquiler.value);
+      gValor.innerHTML = pesos(v) + ' <span>por mes</span>';
+      gHoy.textContent = pesos(v * meses);
+      gNidos.textContent = '~' + pesos(Math.round(v * 12 * pct));
+    };
+
+    gAlquiler.addEventListener('input', () => {
+      actualizarGarantia();
+      if (!gTrackeado) { gTrackeado = true; track('uso_calculadora_garantia'); }
+    });
+    actualizarGarantia();
   }
 
   // Los números del problema cuentan hacia arriba cuando aparecen

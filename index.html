@@ -286,10 +286,17 @@
     </ol>
 
     <div class="garantia">
+      <div class="garantia__slider rango">
+        <label class="garantia__pregunta" for="g-alquiler">¿Cuánto sería tu alquiler mensual?</label>
+        <p class="rango__valor" id="g-valor">$400.000 <span>por mes</span></p>
+        <input type="range" id="g-alquiler" min="200000" max="900000" step="25000" value="400000"
+               aria-describedby="g-valor">
+        <div class="rango__escala"><span>$200.000</span><span>$900.000 o más</span></div>
+      </div>
       <div class="garantia__cols">
         <div class="garantia__col garantia__col--hoy">
           <span class="garantia__tag">Hoy, sin garante</span>
-          <strong>$2.400.000</strong>
+          <strong id="g-hoy">$2.400.000</strong>
           <span class="garantia__det">6 meses de alquiler por adelantado</span>
         </div>
         <div class="garantia__vs" aria-hidden="true">
@@ -297,12 +304,13 @@
         </div>
         <div class="garantia__col garantia__col--nidos">
           <span class="garantia__tag">Con la garantía digital de Nidos</span>
-          <strong>~$288.000</strong>
+          <strong id="g-nidos">~$288.000</strong>
           <span class="garantia__det">una sola vez, y entrás</span>
         </div>
       </div>
-      <p class="garantia__nota">Ejemplo para un alquiler de $400.000 por mes: la garantía
-         digital cuesta el 6% del alquiler anual, en lugar de inmovilizar meses de adelanto.</p>
+      <p class="garantia__nota">Estimación orientativa para comparar: la garantía digital
+         ronda el 6% del alquiler anual y el costo final depende de cada caso. Lo que no
+         cambia es el orden de magnitud contra los meses de adelanto que pide el mercado.</p>
     </div>
   </div>
 </section>
