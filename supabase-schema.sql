@@ -100,7 +100,8 @@ create or replace view public.v_leads as
 select
   l.created_at,
   l.email,
-  l.nombre,
+  -- el nombre se pide (opcional) al final del onboarding; en leads viejos venía en la tabla
+  coalesce(l.nombre, max(case when r.clave = 'nombre' then r.valor end)) as nombre,
   l.puerta,
   l.variant,
   max(case when r.clave = 'situacion'       then r.valor end) as situacion,

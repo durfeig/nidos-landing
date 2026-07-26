@@ -256,6 +256,10 @@
             label: '¿Qué es lo más frustrante de buscar dónde vivir hoy?',
             hint: 'Opcional, pero se lee todo',
             placeholder: 'Contanos tu experiencia...' },
+          { clave: 'nombre', tipo: 'input', requerido: false,
+            label: '¿Cómo te llamás?',
+            hint: 'Opcional',
+            placeholder: 'Tu nombre' },
           { clave: 'whatsapp', tipo: 'tel', requerido: false,
             label: '¿Te avisamos por WhatsApp cuando abramos?',
             hint: 'Opcional. Solo para avisarte, nada más.',
@@ -332,6 +336,10 @@
             label: '¿Qué te haría confiar en una plataforma para compartir tu casa?',
             hint: 'Opcional, pero se lee todo',
             placeholder: 'Contanos qué necesitarías...' },
+          { clave: 'nombre', tipo: 'input', requerido: false,
+            label: '¿Cómo te llamás?',
+            hint: 'Opcional',
+            placeholder: 'Tu nombre' },
           { clave: 'whatsapp', tipo: 'tel', requerido: false,
             label: '¿Te avisamos por WhatsApp cuando abramos?',
             hint: 'Opcional. Solo para avisarte, nada más.',
@@ -403,6 +411,16 @@
         '</label><textarea id="c-' + campo.clave + '" name="' + campo.clave + '"' +
         ' placeholder="' + escapar(campo.placeholder || '') + '">' +
         escapar(guardado ? guardado.valor || '' : '') + '</textarea></div>';
+    }
+
+    if (campo.tipo === 'input') {
+      return '<div class="campo"><label class="campo__label" for="c-' + campo.clave + '">' +
+        escapar(campo.label) +
+        (campo.hint ? ' <span class="campo__hint">· ' + escapar(campo.hint) + '</span>' : '') +
+        '</label><input type="text" id="c-' + campo.clave + '" name="' + campo.clave + '"' +
+        ' placeholder="' + escapar(campo.placeholder || '') + '"' +
+        ' autocomplete="given-name"' +
+        ' value="' + escapar(guardado ? guardado.valor || '' : '') + '"></div>';
     }
 
     if (campo.tipo === 'tel') {
@@ -656,7 +674,11 @@
               'fill="currentColor"/>' +
           '</svg>' +
         '</div>' +
-        '<h2 id="paso-titulo">Listo, ' + escapar((estado.nombre || '').split(' ')[0]) + '. Ya estás en la lista.</h2>' +
+        '<h2 id="paso-titulo">' + (function () {
+          const n = (estado.respuestas.nombre && estado.respuestas.nombre.valor) || estado.nombre || '';
+          return n ? 'Listo, ' + escapar(n.split(' ')[0]) + '. Ya estás en la lista.'
+                   : 'Listo. Ya estás en la lista.';
+        })() + '</h2>' +
         '<p>Te vamos a escribir a <strong>' + escapar(estado.email) + '</strong> en cuanto ' +
           'abramos las primeras zonas. Mientras tanto, tus respuestas nos dicen qué ' +
           'construir primero.</p>' +
@@ -696,6 +718,7 @@
     modal.hidden = false;
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-abierta');
     pintarPaso();
   }
 
@@ -706,6 +729,7 @@
     modal.hidden = true;
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    document.body.classList.remove('modal-abierta');
     if (ultimoFoco) { try { ultimoFoco.focus(); } catch (e) {} }
   }
 
@@ -751,16 +775,14 @@
     e.preventDefault();
     limpiarError();
 
-    const nombre = $('#nombre').value.trim();
     const email  = $('#email').value.trim();
     const puerta = $('input[name="puerta"]:checked').value;
 
-    if (nombre.length < 2) return mostrarError('Contanos cómo te llamás', $('#nombre'));
     if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) {
       return mostrarError('Revisá el email, parece que tiene un error', $('#email'));
     }
 
-    estado.nombre = nombre;
+    estado.nombre = '';
     estado.email = email;
     estado.puerta = puerta;
     estado.paso = 0;
@@ -774,7 +796,7 @@
 
     await insertar('leads', Object.assign({
       session_id: SESSION_ID,
-      nombre: nombre,
+      nombre: null,   // se pide (opcional) en el último paso del onboarding
       email: email,
       puerta: puerta,
       variant: VARIANT
@@ -783,7 +805,7 @@
     track('lead_capturado', { puerta: puerta });
 
     boton.disabled = false;
-    $('span', boton).textContent = 'Sumate a la lista de espera';
+    $('span', boton).textContent = 'Reservar mi lugar';
     abrirModal();
   });
 
@@ -805,7 +827,7 @@
       if (!destino) return;
       track('click_cta', { desde: btn.textContent.trim().slice(0, 40) });
       destino.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => { try { $('#nombre').focus({ preventScroll: true }); } catch (e) {} }, 520);
+      setTimeout(() => { try { $('#email').focus({ preventScroll: true }); } catch (e) {} }, 520);
     });
   });
 
@@ -843,6 +865,70 @@
       const el = $('#' + id);
       if (el) obs.observe(el);
     });
+  }
+
+  /* ===========================================================================
+   * Detalles visuales: aparición al scroll, números animados y CTA sticky
+   * ======================================================================== */
+  const sinMovimiento = window.matchMedia
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Aparición progresiva de las tarjetas al entrar en pantalla
+  if ('IntersectionObserver' in window && !sinMovimiento) {
+    const revelables = $$('.pilar, .dato, .quote, .paso, .garantia, .tabla-scroll, .qa');
+    const obsReveal = new IntersectionObserver(entradas => {
+      entradas.forEach(en => {
+        if (!en.isIntersecting) return;
+        en.target.classList.add('is-in');
+        obsReveal.unobserve(en.target);
+      });
+    }, { threshold: .15, rootMargin: '0px 0px -40px' });
+
+    revelables.forEach(el => {
+      el.classList.add('reveal');
+      // Escalona a los hermanos dentro de una misma grilla
+      const idx = Array.prototype.indexOf.call(el.parentElement.children, el);
+      el.style.transitionDelay = Math.min(Math.max(idx, 0) * 70, 280) + 'ms';
+      obsReveal.observe(el);
+    });
+  }
+
+  // Los números del problema cuentan hacia arriba cuando aparecen
+  function animarNumero(el) {
+    const nodo = el.firstChild;
+    if (!nodo || nodo.nodeType !== 3) return;
+    const m = nodo.textContent.trim().match(/^([^0-9]*)(\d+)$/);
+    if (!m) return;
+    const prefijo = m[1], objetivo = parseInt(m[2], 10);
+    const inicio = performance.now(), dur = 900;
+    (function tick(t) {
+      const p = Math.min((t - inicio) / dur, 1);
+      const suave = 1 - Math.pow(1 - p, 3);
+      nodo.textContent = prefijo + Math.round(objetivo * suave);
+      if (p < 1) requestAnimationFrame(tick);
+    })(inicio);
+  }
+
+  if ('IntersectionObserver' in window && !sinMovimiento) {
+    const obsNums = new IntersectionObserver(entradas => {
+      entradas.forEach(en => {
+        if (!en.isIntersecting) return;
+        animarNumero(en.target);
+        obsNums.unobserve(en.target);
+      });
+    }, { threshold: .6 });
+    $$('.dato__num').forEach(el => obsNums.observe(el));
+  }
+
+  // CTA fija abajo en mobile cuando el formulario del hero salió de pantalla
+  const stickyCta = $('#sticky-cta');
+  if (stickyCta && 'IntersectionObserver' in window) {
+    const obsSticky = new IntersectionObserver(entradas => {
+      entradas.forEach(en => {
+        stickyCta.classList.toggle('is-on', !en.isIntersecting);
+      });
+    }, { threshold: 0 });
+    obsSticky.observe(formHero);
   }
 
   /* Ctrl+Shift+D descarga todo lo capturado localmente como CSV.

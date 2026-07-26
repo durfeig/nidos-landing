@@ -75,7 +75,7 @@
       <a href="#faq">Preguntas frecuentes</a>
     </nav>
 
-    <button class="btn btn--primary btn--sm" data-scroll-to="hero">Sumate a la lista</button>
+    <button class="btn btn--primary btn--sm" data-scroll-to="hero">Reservá tu lugar</button>
   </div>
 </header>
 
@@ -130,31 +130,34 @@
         </fieldset>
 
         <div class="field">
-          <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <input type="text" id="nombre" name="nombre" placeholder="Nombre" autocomplete="given-name" required>
-        </div>
-
-        <div class="field">
           <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5h18v11H3zM3 7l9 6 9-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <input type="email" id="email" name="email" placeholder="Email" autocomplete="email" required>
+          <input type="email" id="email" name="email" placeholder="Tu email" autocomplete="email" required>
         </div>
 
         <p class="form-error" id="hero-error" role="alert" hidden></p>
 
         <button type="submit" class="btn btn--primary btn--block btn--lg">
-          <span>Sumate a la lista de espera</span>
+          <span>Reservar mi lugar</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
 
-        <p class="hero__legal">
-          Te vamos a hacer 6 preguntas rápidas para entender qué necesitás.
-          No compartimos tu email con nadie y no hay ningún pago involucrado.
-        </p>
+        <ul class="hero__badges" aria-label="Qué implica sumarte">
+          <li>Gratis, sin compromiso</li>
+          <li>Te toma 2 minutos</li>
+          <li>Tu email no se comparte</li>
+        </ul>
       </form>
     </div>
 
     <div class="hero__media">
       <img src="assets/hero.jpg" width="872" height="555" alt="Tres personas jóvenes conversando y riéndose en el living de un departamento compartido." fetchpriority="high">
+      <div class="match-card" aria-hidden="true">
+        <div class="match-card__ring"><span>92<em>%</em></span></div>
+        <div class="match-card__info">
+          <strong>Compatibilidad de convivencia</strong>
+          <span>Palermo · $265.000/mes por persona</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -281,6 +284,26 @@
            después algo se complica.</p>
       </li>
     </ol>
+
+    <div class="garantia">
+      <div class="garantia__cols">
+        <div class="garantia__col garantia__col--hoy">
+          <span class="garantia__tag">Hoy, sin garante</span>
+          <strong>$2.400.000</strong>
+          <span class="garantia__det">6 meses de alquiler por adelantado</span>
+        </div>
+        <div class="garantia__vs" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="garantia__col garantia__col--nidos">
+          <span class="garantia__tag">Con la garantía digital de Nidos</span>
+          <strong>~$288.000</strong>
+          <span class="garantia__det">una sola vez, y entrás</span>
+        </div>
+      </div>
+      <p class="garantia__nota">Ejemplo para un alquiler de $400.000 por mes: la garantía
+         digital cuesta el 6% del alquiler anual, en lugar de inmovilizar meses de adelanto.</p>
+    </div>
   </div>
 </section>
 
@@ -431,7 +454,7 @@
        primero — y cuando abramos cada zona, la lista se recorre en orden
        de llegada.</p>
     <button class="btn btn--primary btn--lg" data-scroll-to="hero">
-      <span>Sumate a la lista de espera</span>
+      <span>Reservar mi lugar</span>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <p class="cierre__count" id="cierre-count" hidden></p>
@@ -508,6 +531,12 @@
       </button>
     </div>
   </div>
+</div>
+
+<div class="sticky-cta" id="sticky-cta">
+  <button class="btn btn--primary btn--block" data-scroll-to="hero">
+    <span>Reservar mi lugar</span>
+  </button>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
