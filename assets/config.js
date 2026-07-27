@@ -41,7 +41,7 @@ window.NIDOS_CONFIG = {
   /* ---------------------------------------------------------------------------
    * 4. ANALÍTICA  (opcional · dejá vacío lo que no uses)
    * ------------------------------------------------------------------------ */
-  CLARITY_ID: '',      // Microsoft Clarity → Settings → Project ID
+  CLARITY_ID: 'xt34c5j6y7',      // Microsoft Clarity → Settings → Project ID
   GA4_ID: '',          // ej: 'G-XXXXXXXXXX'
   META_PIXEL_ID: '',   // ej: '1234567890'
 
