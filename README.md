@@ -85,6 +85,7 @@ En Supabase → **Table Editor** (o SQL Editor) tenés 5 vistas listas:
 | `v_referidos` | Quién invitó a quién. Los pares que llegan juntos son candidatos a convivencia pre-validados. |
 | `v_demanda_geo` | Leads por ciudad (AMBA, Córdoba, Rosario…), separando quién busca y quién ofrece. Define el orden de apertura de zonas. |
 | `v_canales` | Visitantes, leads y conversión por canal (`utm_source`). El tablero del experimento de tráfico. |
+| `v_visitas_diarias` | Visitas, leads y conversión por día (huso argentino). La foto diaria de la campaña. |
 
 Exportar: abrí la vista en SQL Editor (`select * from v_leads`) → **Download CSV**.
 

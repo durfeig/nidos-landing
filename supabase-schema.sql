@@ -104,6 +104,7 @@ drop view if exists public.v_wtp;
 drop view if exists public.v_demanda_geo;
 drop view if exists public.v_referidos;
 drop view if exists public.v_canales;
+drop view if exists public.v_visitas_diarias;
 
 -- Un lead por fila con todas sus respuestas pivoteadas: la tabla que querés
 -- exportar a CSV para el entregable.
@@ -274,6 +275,31 @@ from visitas v
 full outer join capturas c on c.canal = v.canal
 order by leads desc, visitantes desc;
 
+-- Evolución diaria: visitas, leads y conversión por día (huso de Argentina).
+-- La foto de cómo viene la campaña, para mirar cada mañana.
+create or replace view public.v_visitas_diarias as
+with visitas as (
+  select date(created_at at time zone 'America/Argentina/Buenos_Aires') as dia,
+         count(distinct session_id) as visitantes
+  from public.eventos
+  where nombre = 'page_view'
+  group by 1
+),
+capturas as (
+  select date(created_at at time zone 'America/Argentina/Buenos_Aires') as dia,
+         count(*) as leads
+  from public.leads
+  group by 1
+)
+select
+  coalesce(v.dia, c.dia)    as dia,
+  coalesce(v.visitantes, 0) as visitantes,
+  coalesce(c.leads, 0)      as leads,
+  round(100.0 * coalesce(c.leads, 0) / nullif(v.visitantes, 0), 1) as conv_pct
+from visitas v
+full outer join capturas c on c.dia = v.dia
+order by dia desc;
+
 -- =============================================================================
 -- BLINDAJE DE LAS VISTAS · IMPRESCINDIBLE
 -- =============================================================================
@@ -290,9 +316,10 @@ alter view public.v_barreras    set (security_invoker = on);
 alter view public.v_wtp         set (security_invoker = on);
 alter view public.v_demanda_geo set (security_invoker = on);
 alter view public.v_referidos   set (security_invoker = on);
-alter view public.v_canales     set (security_invoker = on);
+alter view public.v_canales         set (security_invoker = on);
+alter view public.v_visitas_diarias set (security_invoker = on);
 
 revoke all on public.v_leads, public.v_ab_test, public.v_dropoff,
               public.v_barreras, public.v_wtp, public.v_demanda_geo,
-              public.v_referidos, public.v_canales
+              public.v_referidos, public.v_canales, public.v_visitas_diarias
 from anon, authenticated;
