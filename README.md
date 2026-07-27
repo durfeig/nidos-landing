@@ -83,6 +83,7 @@ En Supabase → **Table Editor** (o SQL Editor) tenés 5 vistas listas:
 | `v_barreras` | Ranking de barreras declaradas (valida la tesis del Módulo 3: ¿es exclusión estructural o precio?). |
 | `v_wtp` | Disposición a pagar por cada flujo de monetización del Doc #3. |
 | `v_referidos` | Quién invitó a quién. Los pares que llegan juntos son candidatos a convivencia pre-validados. |
+| `v_demanda_geo` | Leads por ciudad (AMBA, Córdoba, Rosario…), separando quién busca y quién ofrece. Define el orden de apertura de zonas. |
 
 Exportar: abrí la vista en SQL Editor (`select * from v_leads`) → **Download CSV**.
 

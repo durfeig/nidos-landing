@@ -812,16 +812,32 @@
 
   function limpiarError() {
     errorHero.hidden = true;
-    $$('#form-hero input').forEach(i => i.removeAttribute('aria-invalid'));
+    $$('#form-hero input, #form-hero select').forEach(i => i.removeAttribute('aria-invalid'));
   }
+
+  /* La ciudad del hero pre-carga la zona del paso 2 del onboarding, para que
+     nadie sienta que responde dos veces lo mismo. AMBA no se mapea: ahí el
+     onboarding pregunta el barrio, que es el dato fino que necesitamos. */
+  const CIUDAD_A_ZONA = {
+    'Gran Córdoba': 'Gran Córdoba',
+    'Gran Rosario': 'Gran Rosario',
+    'Gran Mendoza': 'Gran Mendoza',
+    'Otra ciudad de Argentina': 'Otra ciudad del país',
+    'Todavía no lo sé': 'Todavía no lo tengo definido'
+  };
 
   formHero.addEventListener('submit', async e => {
     e.preventDefault();
     limpiarError();
 
+    const ciudad = $('#zona-ciudad').value;
     const email  = $('#email').value.trim();
     const puerta = $('input[name="puerta"]:checked').value;
 
+    if (!ciudad) {
+      $('#zona-ciudad').setAttribute('aria-invalid', 'true');
+      return mostrarError('Contanos dónde te gustaría vivir', $('#zona-ciudad'));
+    }
     if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) {
       return mostrarError('Revisá el email, parece que tiene un error', $('#email'));
     }
@@ -832,6 +848,9 @@
     estado.paso = 0;
     estado.respuestas = {};
     estado.terminado = false;
+    if (CIUDAD_A_ZONA[ciudad]) {
+      estado.respuestas.zona = { valor: CIUDAD_A_ZONA[ciudad], valor_num: null, paso: 2 };
+    }
     PASOS = puerta === 'tengo_lugar' ? pasosTengoLugar() : pasosBusco();
 
     const boton = $('button[type="submit"]', formHero);
@@ -846,9 +865,21 @@
       variant: VARIANT
     }, ATRIBUCION));
 
-    track('lead_capturado', REF_ENTRANTE
-      ? { puerta: puerta, ref: REF_ENTRANTE }
-      : { puerta: puerta });
+    /* La ciudad se guarda como respuesta (paso 0) para que quede registrada
+       aunque la persona abandone el onboarding: es el dato que valida en qué
+       orden abrir las zonas. */
+    insertar('respuestas', {
+      session_id: SESSION_ID,
+      paso: 0,
+      clave: 'zona_ciudad',
+      valor: ciudad,
+      valor_num: null
+    });
+
+    track('lead_capturado', Object.assign(
+      { puerta: puerta, ciudad: ciudad },
+      REF_ENTRANTE ? { ref: REF_ENTRANTE } : {}
+    ));
 
     boton.disabled = false;
     $('span', boton).textContent = 'Reservar mi lugar';

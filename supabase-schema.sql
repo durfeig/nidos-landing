@@ -105,6 +105,7 @@ select
   l.puerta,
   l.variant,
   max(case when r.clave = 'situacion'       then r.valor end) as situacion,
+  max(case when r.clave = 'zona_ciudad'     then r.valor end) as ciudad,
   max(case when r.clave = 'zona'            then r.valor end) as zona,
   max(case when r.clave = 'presupuesto'     then r.valor_num end) as presupuesto_ars,
   max(case when r.clave = 'urgencia'        then r.valor end) as urgencia,
@@ -192,6 +193,21 @@ from public.respuestas
 where clave like 'wtp_%'
 group by clave, valor
 order by clave, n desc;
+
+-- Demanda por ciudad: valida en qué orden abrir las zonas. La ciudad se captura
+-- en el hero (paso 0), así que queda registrada aunque abandonen el onboarding.
+create or replace view public.v_demanda_geo as
+select
+  coalesce(r.valor, '(sin dato)') as ciudad,
+  count(*)                                        as leads,
+  count(*) filter (where l.puerta = 'busco')       as buscan,
+  count(*) filter (where l.puerta = 'tengo_lugar') as ofrecen,
+  round(100.0 * count(*) / sum(count(*)) over (), 1) as pct
+from public.leads l
+left join public.respuestas r
+  on r.session_id = l.session_id and r.clave = 'zona_ciudad'
+group by coalesce(r.valor, '(sin dato)')
+order by leads desc;
 
 -- Loop de referidos: quién invitó a quién. El código de invitación es el tramo
 -- aleatorio del session_id de quien comparte (viaja en eventos.props->>'ref'),
