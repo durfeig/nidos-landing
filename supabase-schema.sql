@@ -103,6 +103,7 @@ drop view if exists public.v_barreras;
 drop view if exists public.v_wtp;
 drop view if exists public.v_demanda_geo;
 drop view if exists public.v_referidos;
+drop view if exists public.v_canales;
 
 -- Un lead por fila con todas sus respuestas pivoteadas: la tabla que querés
 -- exportar a CSV para el entregable.
@@ -242,6 +243,37 @@ left join public.leads anfitrion
   on split_part(anfitrion.session_id, '_', 3) = r.codigo
 order by r.capturado_at desc;
 
+-- Conversión por canal de adquisición: el tablero del experimento de tráfico.
+-- Cada canal se etiqueta con utm_source en el link que compartís.
+create or replace view public.v_canales as
+with visitas as (
+  select coalesce(props->>'utm_source', '(directo)') as canal,
+         count(distinct session_id) as visitantes
+  from public.eventos
+  where nombre = 'page_view'
+  group by 1
+),
+capturas as (
+  select coalesce(l.utm_source, '(directo)') as canal,
+         count(*) as leads,
+         count(*) filter (where exists (
+           select 1 from public.respuestas r
+           where r.session_id = l.session_id and r.paso >= 5
+         )) as onboarding_completo
+  from public.leads l
+  group by 1
+)
+select
+  coalesce(v.canal, c.canal)            as canal,
+  coalesce(v.visitantes, 0)             as visitantes,
+  coalesce(c.leads, 0)                  as leads,
+  coalesce(c.onboarding_completo, 0)    as onboarding_completo,
+  round(100.0 * coalesce(c.leads, 0) / nullif(v.visitantes, 0), 1) as conv_lead_pct,
+  round(100.0 * coalesce(c.onboarding_completo, 0) / nullif(c.leads, 0), 1) as conv_onboarding_pct
+from visitas v
+full outer join capturas c on c.canal = v.canal
+order by leads desc, visitantes desc;
+
 -- =============================================================================
 -- BLINDAJE DE LAS VISTAS · IMPRESCINDIBLE
 -- =============================================================================
@@ -258,8 +290,9 @@ alter view public.v_barreras    set (security_invoker = on);
 alter view public.v_wtp         set (security_invoker = on);
 alter view public.v_demanda_geo set (security_invoker = on);
 alter view public.v_referidos   set (security_invoker = on);
+alter view public.v_canales     set (security_invoker = on);
 
 revoke all on public.v_leads, public.v_ab_test, public.v_dropoff,
               public.v_barreras, public.v_wtp, public.v_demanda_geo,
-              public.v_referidos
+              public.v_referidos, public.v_canales
 from anon, authenticated;

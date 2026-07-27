@@ -84,6 +84,7 @@ En Supabase → **Table Editor** (o SQL Editor) tenés 5 vistas listas:
 | `v_wtp` | Disposición a pagar por cada flujo de monetización del Doc #3. |
 | `v_referidos` | Quién invitó a quién. Los pares que llegan juntos son candidatos a convivencia pre-validados. |
 | `v_demanda_geo` | Leads por ciudad (AMBA, Córdoba, Rosario…), separando quién busca y quién ofrece. Define el orden de apertura de zonas. |
+| `v_canales` | Visitantes, leads y conversión por canal (`utm_source`). El tablero del experimento de tráfico. |
 
 Exportar: abrí la vista en SQL Editor (`select * from v_leads`) → **Download CSV**.
 
