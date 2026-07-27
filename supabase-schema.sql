@@ -241,3 +241,25 @@ join public.leads invitado on invitado.session_id = r.session_id
 left join public.leads anfitrion
   on split_part(anfitrion.session_id, '_', 3) = r.codigo
 order by r.capturado_at desc;
+
+-- =============================================================================
+-- BLINDAJE DE LAS VISTAS · IMPRESCINDIBLE
+-- =============================================================================
+-- En Postgres las vistas corren con los privilegios de su dueño y SALTAN el
+-- RLS de las tablas, y Supabase les da permiso de lectura a anon por defecto.
+-- Sin este bloque, cualquiera con la clave pública podría leer los emails
+-- capturados a través de las vistas. Con él, las vistas quedan solo para vos
+-- (SQL Editor / dashboard); la clave del navegador no puede leerlas.
+
+alter view public.v_leads       set (security_invoker = on);
+alter view public.v_ab_test     set (security_invoker = on);
+alter view public.v_dropoff     set (security_invoker = on);
+alter view public.v_barreras    set (security_invoker = on);
+alter view public.v_wtp         set (security_invoker = on);
+alter view public.v_demanda_geo set (security_invoker = on);
+alter view public.v_referidos   set (security_invoker = on);
+
+revoke all on public.v_leads, public.v_ab_test, public.v_dropoff,
+              public.v_barreras, public.v_wtp, public.v_demanda_geo,
+              public.v_referidos
+from anon, authenticated;
