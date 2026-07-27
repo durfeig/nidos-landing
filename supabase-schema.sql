@@ -93,6 +93,16 @@ create policy "anon puede insertar eventos"
 -- =============================================================================
 -- VISTAS DE ANÁLISIS · usalas desde Supabase → Table Editor o SQL Editor
 -- =============================================================================
+-- Las vistas se dropean antes de recrearse porque "create or replace" no
+-- permite agregar columnas en el medio. No guardan datos: dropearlas es gratis.
+
+drop view if exists public.v_leads;
+drop view if exists public.v_ab_test;
+drop view if exists public.v_dropoff;
+drop view if exists public.v_barreras;
+drop view if exists public.v_wtp;
+drop view if exists public.v_demanda_geo;
+drop view if exists public.v_referidos;
 
 -- Un lead por fila con todas sus respuestas pivoteadas: la tabla que querés
 -- exportar a CSV para el entregable.
