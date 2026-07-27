@@ -42,13 +42,13 @@ window.NIDOS_CONFIG = {
    * 4. ANALÍTICA  (opcional · dejá vacío lo que no uses)
    * ------------------------------------------------------------------------ */
   CLARITY_ID: 'xt34c5j6y7',      // Microsoft Clarity → Settings → Project ID
-  GA4_ID: '',          // ej: 'G-XXXXXXXXXX'
+  GA4_ID: 'G-G7FTNMSYYS',          // ej: 'G-XXXXXXXXXX'
   META_PIXEL_ID: '',   // ej: '1234567890'
 
   /* ---------------------------------------------------------------------------
    * 5. CONTACTO
    * ------------------------------------------------------------------------ */
-  EMAIL_CONTACTO: 'hola@nidos.com.ar',
+  EMAIL_CONTACTO: 'durfeig@udesa.edu.ar',
 
   /* ---------------------------------------------------------------------------
    * 6. CONTADOR DE LISTA DE ESPERA
