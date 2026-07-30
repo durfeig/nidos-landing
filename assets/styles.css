@@ -502,7 +502,9 @@ html[data-variant="B"] .variant--b { display: block; }
 .modal[hidden] { display: none; }
 .modal__backdrop {
   position: absolute; inset: 0;
-  background: rgba(15, 31, 61, .55); backdrop-filter: blur(3px);
+  /* Sin backdrop-filter: en Chrome/macOS puede dejar la capa del modal en
+     blanco al repintar contenido grande (bug de composición del navegador). */
+  background: rgba(15, 31, 61, .62);
   animation: fade .18s ease-out;
 }
 .modal__panel {
@@ -512,6 +514,7 @@ html[data-variant="B"] .variant--b { display: block; }
   box-shadow: var(--shadow-lg);
   display: flex; flex-direction: column; overflow: hidden;
   animation: rise .22s cubic-bezier(.2, .8, .3, 1);
+  transform: translateZ(0); /* capa de composición propia y estable */
 }
 @keyframes fade { from { opacity: 0; } }
 @keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.985); } }
