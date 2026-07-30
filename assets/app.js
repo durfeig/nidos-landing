@@ -9,7 +9,10 @@
 
   const CFG = window.NIDOS_CONFIG || {};
   const VARIANT = window.NIDOS_VARIANT || 'A';
-  const HAY_SUPABASE = Boolean(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
+  /* En localhost SIEMPRE modo demo: las pruebas locales no deben escribir en
+     la base de producción ni inflar las métricas de la campaña. */
+  const ES_LOCAL = ['localhost', '127.0.0.1'].indexOf(location.hostname) !== -1;
+  const HAY_SUPABASE = Boolean(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY) && !ES_LOCAL;
 
   const $  = (sel, ctx) => (ctx || document).querySelector(sel);
   const $$ = (sel, ctx) => Array.from((ctx || document).querySelectorAll(sel));
