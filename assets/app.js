@@ -127,6 +127,29 @@
     if (window.fbq && nombre === 'lead_capturado') { try { window.fbq('track', 'Lead'); } catch (e) {} }
   }
 
+  /* Telemetría de errores: si algo se rompe en un navegador que no probamos,
+     el mensaje exacto queda en eventos (nombre = 'error_js') para diagnosticar
+     desde los datos en vez de adivinar. */
+  let erroresReportados = 0;
+  function reportarError(mensaje, extra) {
+    if (erroresReportados >= 5) return;
+    erroresReportados += 1;
+    insertar('eventos', {
+      session_id: SESSION_ID,
+      variant: VARIANT,
+      nombre: 'error_js',
+      props: Object.assign({
+        mensaje: String(mensaje || 'desconocido').slice(0, 300),
+        pagina: location.pathname + location.search,
+        navegador: navigator.userAgent.slice(0, 160)
+      }, extra || {})
+    });
+  }
+  window.addEventListener('error', e =>
+    reportarError(e.message, { origen: (e.filename || '').split('/').pop() + ':' + e.lineno }));
+  window.addEventListener('unhandledrejection', e =>
+    reportarError((e.reason && e.reason.message) || 'promesa rechazada', { tipo: 'promesa' }));
+
   function cargarAnalytics() {
     if (CFG.CLARITY_ID) {
       (function (c, l, a, r, i, t, y) {
@@ -637,6 +660,25 @@
     return filas;
   }
 
+  /* Pantalla de cierre mínima: si terminar() o pintarPaso() fallan en algún
+     navegador, la persona igual recibe confirmación (sus respuestas ya se
+     guardaron paso a paso) en lugar de un modal en blanco. */
+  function graciasMinima() {
+    estado.terminado = true;
+    barra.style.width = '100%';
+    contador.textContent = 'Listo';
+    pie.classList.add('is-hidden');
+    cuerpo.innerHTML =
+      '<div class="gracias">' +
+        '<h2 id="paso-titulo">Listo. Ya estás en la lista.</h2>' +
+        '<p>Guardamos tus respuestas y te vamos a escribir a <strong>' +
+          escapar(estado.email || 'tu email') + '</strong> cuando abramos. ¡Gracias por sumarte!</p>' +
+        '<div class="gracias__acciones">' +
+          '<button class="btn btn--primary btn--block" data-close-modal>Volver a la página</button>' +
+        '</div>' +
+      '</div>';
+  }
+
   async function avanzar() {
     const filas = recolectar();
     if (!filas) return;
@@ -645,11 +687,16 @@
     insertar('respuestas', filas);
     track('step_complete', { paso: estado.paso + 1, puerta: estado.puerta });
 
-    if (estado.paso === PASOS.length - 1) {
-      await terminar();
-    } else {
-      estado.paso += 1;
-      pintarPaso();
+    try {
+      if (estado.paso === PASOS.length - 1) {
+        await terminar();
+      } else {
+        estado.paso += 1;
+        pintarPaso();
+      }
+    } catch (err) {
+      reportarError('fallo al avanzar: ' + (err && err.message), { paso: estado.paso + 1 });
+      graciasMinima();
     }
     btnNext.disabled = false;
   }
