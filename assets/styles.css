@@ -498,12 +498,16 @@ html[data-variant="B"] .variant--b { display: block; }
 .footer__meta a { color: #A8BCD4; }
 
 /* ============================================================== ONBOARDING == */
-.modal { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 20px; }
+.modal {
+  position: fixed; inset: 0; z-index: 300;
+  display: grid; place-items: center; padding: 20px;
+  /* Red de seguridad: si el contenido de un paso excede el alto disponible,
+     scrollea el overlay completo en lugar de recortar el panel. */
+  overflow-y: auto; overscroll-behavior: contain;
+}
 .modal[hidden] { display: none; }
 .modal__backdrop {
-  position: absolute; inset: 0;
-  /* Sin backdrop-filter: en Chrome/macOS puede dejar la capa del modal en
-     blanco al repintar contenido grande (bug de composición del navegador). */
+  position: fixed; inset: 0;
   background: rgba(15, 31, 61, .62);
   animation: fade .18s ease-out;
 }
@@ -513,8 +517,9 @@ html[data-variant="B"] .variant--b { display: block; }
   background: #fff; border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   display: flex; flex-direction: column; overflow: hidden;
-  animation: rise .22s cubic-bezier(.2, .8, .3, 1);
-  transform: translateZ(0); /* capa de composición propia y estable */
+  /* Entrada solo con opacidad: una animación con transform puede dejar el
+     panel visualmente desplazado si se interrumpe, y el modal es crítico. */
+  animation: fade .2s ease-out;
 }
 @keyframes fade { from { opacity: 0; } }
 @keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.985); } }
@@ -546,7 +551,11 @@ html[data-variant="B"] .variant--b { display: block; }
   border-radius: 0 4px 4px 0; transition: width .3s cubic-bezier(.4, 0, .2, 1);
 }
 
-.modal__body { padding: 26px 26px 8px; overflow-y: auto; flex: 1; }
+/* min-height: 0 es imprescindible: sin él, la regla de tamaño mínimo
+   automático de flexbox impide que este hijo se encoja por debajo del alto de
+   su contenido, el panel desborda su max-height y el overflow:hidden recorta
+   la barra y el pie (pantalla "en blanco" en el paso de precios). */
+.modal__body { padding: 26px 26px 8px; overflow-y: auto; flex: 1; min-height: 0; }
 .modal__foot {
   display: flex; align-items: center; gap: 12px;
   padding: 18px 26px 24px; flex: none;
