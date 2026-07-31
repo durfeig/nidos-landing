@@ -192,27 +192,24 @@
   /* ------------------------------------------------------------------ intro -- */
   function vIntro() {
     const pasos = [
-      ['Lista de espera', 'Lo que ya está validándose en la landing', false],
-      ['Perfil de convivencia', 'Hábitos, horarios y preferencias como criterios', true],
-      ['Matching por afinidad', 'Score entre personas y entre persona y vivienda', true],
-      ['Viviendas compatibles', 'Espacios aptos para compartir, con precio total', true],
-      ['Formalización', 'Garantía digital, contrato y pagos trazables', true]
+      ['Tu perfil de convivencia', 'Horarios, orden, mascotas y estilo de vida'],
+      ['Personas compatibles', 'Te mostramos con quién tenés más afinidad'],
+      ['El lugar', 'Espacios aptos para compartir, con el precio total a la vista'],
+      ['El acuerdo', 'Garantía digital, contrato y pagos, todo desde acá']
     ];
     return '<section class="dpantalla dintro">' +
-      '<div><p class="deyebrow">Prototipo del producto</p>' +
-      '<h1 class="dtitulo">Así funcionaría Nidos<br><span class="accent">después del registro.</span></h1>' +
-      '<p class="dbajada">La landing valida que existe demanda. Este prototipo muestra la parte ' +
-        'que el registro no puede mostrar: cómo se construye el perfil de convivencia, cómo se ' +
-        'calcula la afinidad entre dos personas, cómo aparece la vivienda y cómo se formaliza el ' +
-        'acuerdo.</p>' +
-      '<p class="dnota">El score de afinidad que vas a ver se calcula con tus propias respuestas. ' +
-        'Las personas y las propiedades son ficticias.</p>' +
+      '<div><p class="deyebrow">Bienvenido a Nidos</p>' +
+      '<h1 class="dtitulo">Empecemos por vos:<br><span class="accent">cómo te gusta vivir.</span></h1>' +
+      '<p class="dbajada">Seis preguntas rápidas sobre tu día a día. Con eso buscamos personas ' +
+        'compatibles y lugares que entren en tu presupuesto, para que compartir casa sea una ' +
+        'elección y no una lotería.</p>' +
+      '<p class="dnota">Toma menos de dos minutos. Podés cambiar tus respuestas cuando quieras.</p>' +
       '<div class="dacciones"><button class="btn btn--primary btn--lg" data-ir="1">' +
-        '<span>Empezar el recorrido</span>' +
+        '<span>Armar mi perfil</span>' +
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
         '</button></div></div>' +
       '<div class="dmapa">' + pasos.map((x, k) =>
-        '<div class="dmapa__paso' + (x[2] ? ' dmapa__paso--hoy' : '') + '">' +
+        '<div class="dmapa__paso' + (k === 0 ? ' dmapa__paso--hoy' : '') + '">' +
         '<span class="dmapa__n">' + (k + 1) + '</span><span><strong>' + esc(x[0]) + '</strong>' +
         '<span>' + esc(x[1]) + '</span></span></div>').join('') +
       '</div></section>';
@@ -267,16 +264,16 @@
     }).join('');
     return '<section class="dpantalla"><div class="dcabecera">' +
       '<p class="deyebrow">Tu perfil está listo</p>' +
-      '<h1 class="dtitulo">Esto es lo que el motor<br><span class="accent">usa para buscarte gente.</span></h1>' +
-      '<p class="dbajada">Tus preferencias dejan de ser un texto libre que nadie lee y se convierten ' +
-        'en criterios comparables. El peso de cada dimensión sale de cuánto explica los conflictos ' +
-        'de convivencia.</p></div>' +
+      '<h1 class="dtitulo">Listo. Ya sabemos<br><span class="accent">con quién buscarte.</span></h1>' +
+      '<p class="dbajada">Así te ve Nidos cuando busca convivientes. Cuanto más pesa una variable, ' +
+        'más influye en la compatibilidad: el orden y las mascotas son las que más conflictos ' +
+        'explican en una convivencia compartida.</p></div>' +
       '<div class="dperfil"><div class="dcard"><h3>Tu perfil de convivencia</h3>' +
       '<div class="dchips">' + chips + '</div>' +
       '<p class="dnota">Zona: <strong>' + esc(st.zona) + '</strong><br>Presupuesto: <strong>' +
         pesos(st.presupuesto) + '</strong> por mes</p></div>' +
-      '<div class="dcard"><h3>Peso de cada dimensión</h3><p class="dnota" style="margin-top:4px">' +
-        'Cuánto influye cada variable en el score de compatibilidad.</p>' +
+      '<div class="dcard"><h3>Cuánto pesa cada variable</h3><p class="dnota" style="margin-top:4px">' +
+        'En tu score de compatibilidad con otras personas.</p>' +
       '<div class="dbarras" style="margin-top:18px">' + barras + '</div></div></div>' +
       '<div class="dacciones">' + btnAtras +
       '<button class="btn btn--primary btn--lg" data-ir="' + (st.i + 1) + '">' +
@@ -311,21 +308,20 @@
     const mazo = c
       ? (sig ? fichaHTML(sig, true) : '') + fichaHTML(c, false)
       : '<div class="dficha dvacio"><div><p><strong>Por hoy no hay más perfiles.</strong></p>' +
-        '<p class="dnota">En el producto real entran nuevos según se registra gente en tu zona.</p>' +
-        '<button class="btn btn--outline" data-reset-mazo style="margin-top:16px">Volver a empezar</button></div></div>';
+        '<p class="dnota">Te avisamos en cuanto se sumen personas compatibles en tu zona.</p>' +
+        '<button class="btn btn--outline" data-reset-mazo style="margin-top:16px">Ver de nuevo</button></div></div>';
     return '<section class="dpantalla"><div class="dcabecera">' +
-      '<p class="deyebrow">Matching por afinidad</p>' +
-      '<h1 class="dtitulo">Personas compatibles con vos</h1>' +
-      '<p class="dbajada">Primero el score ordena por compatibilidad real; después decidís vos. ' +
-        'El match se produce cuando las dos personas se eligen.</p></div>' +
+      '<p class="deyebrow">Personas compatibles</p>' +
+      '<h1 class="dtitulo">Estas personas buscan<br><span class="accent">algo parecido a vos.</span></h1>' +
+      '<p class="dbajada">Están ordenadas por compatibilidad con tu perfil. Si te interesa alguien ' +
+        'y a esa persona también, se abre el chat: nadie puede escribirte sin que vos lo elijas.</p></div>' +
       '<div class="dswipe"><div class="dmazo">' + mazo + '</div>' +
-      '<div><div class="dcard"><h3>Cómo se calcula</h3>' +
-      '<p class="dnota" style="margin-top:6px">El porcentaje no es una etiqueta: se calcula ' +
-        'comparando tus respuestas con las de la otra persona en las seis dimensiones, ponderadas ' +
-        'por cuánto pesa cada una en la convivencia. Cambiá tus respuestas y los números cambian.</p>' +
-      '<p class="dnota" style="margin-top:12px"><strong>Etapa 1:</strong> score por afinidad ' +
-        '(no requiere volumen de datos).<br><strong>Etapa 2:</strong> elección mutua, que alimenta ' +
-        'el modelo con datos de comportamiento.</p></div>' +
+      '<div><div class="dcard"><h3>¿Cómo calculamos la afinidad?</h3>' +
+      '<p class="dnota" style="margin-top:6px">Comparamos tus respuestas con las de la otra persona ' +
+        'en las seis dimensiones de convivencia y ponderamos cada una según cuántos conflictos ' +
+        'explica. No es una estimación: si cambiás una respuesta, el porcentaje cambia.</p>' +
+      '<p class="dnota" style="margin-top:12px">Ninguna persona ve tus datos de contacto hasta que ' +
+        'haya match. Todos los perfiles tienen identidad verificada.</p></div>' +
       '<div class="dacciones">' + btnAtras + '</div></div></div></section>';
   }
 
@@ -362,9 +358,9 @@
     return '<section class="dpantalla"><div class="dcabecera">' +
       '<p class="deyebrow">Matching habitacional</p>' +
       '<h1 class="dtitulo">Tres lugares para vos y ' + esc(c.nombre) + '</h1>' +
-      '<p class="dbajada">Acá está la diferencia con una app de roommates: el match no termina en ' +
-        'las personas. Estos espacios son aptos para compartir y entran en los dos presupuestos, ' +
-        'con el precio total a la vista.</p></div>' +
+      '<p class="dbajada">Espacios aptos para compartir que entran en los dos presupuestos, con el ' +
+        'precio total a la vista y las reglas de la casa desde el primer momento. Ninguno pide ' +
+        'garantía propietaria.</p></div>' +
       '<div class="dviviendas">' + lista.map((v, k) =>
         '<button class="dviv' + (st.vivienda === k ? ' is-sel' : '') + '" data-viv="' + k + '">' +
         '<span class="dviv__foto" style="background:linear-gradient(135deg,' + v.color[0] + ',' + v.color[1] + ')">' +
@@ -375,8 +371,7 @@
         '<span class="dviv__total">Total del alquiler: ' + pesos(v.total) + '</span>' +
         '<span class="dviv__reglas">' + v.reglas.map(r => '<span>· ' + esc(r) + '</span>').join('') + '</span>' +
         '<span class="dviv__cta">Elegir este →</span></span></button>').join('') + '</div>' +
-      '<p class="dnota">Ninguna garantía propietaria en los requisitos: se reemplaza por la garantía ' +
-        'digital de Nidos, que es el paso siguiente.</p>' +
+      '<p class="dnota">Elegí uno para ver las condiciones de ingreso y el acuerdo.</p>' +
       '<div class="dacciones">' + btnAtras + '</div></section>';
   }
 
@@ -390,10 +385,10 @@
     const ico = d => '<span class="dlinea__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg></span>';
 
     return '<section class="dpantalla"><div class="dcabecera">' +
-      '<p class="deyebrow">Formalización · así monetiza Nidos</p>' +
+      '<p class="deyebrow">Condiciones de ingreso</p>' +
       '<h1 class="dtitulo">De un acuerdo de palabra<br><span class="accent">a un contrato real.</span></h1>' +
-      '<p class="dbajada">Elegiste ' + esc(v.zona) + ' a ' + pesos(v.pp) + ' por persona. Estos son ' +
-        'los cuatro flujos de ingreso del modelo, cuándo se cobra cada uno y quién lo paga.</p></div>' +
+      '<p class="dbajada">Elegiste ' + esc(v.zona) + ' a ' + pesos(v.pp) + ' por persona. Esto es ' +
+        'todo lo que pagás para entrar, sin garantía propietaria y sin adelantar medio año.</p></div>' +
       '<div class="dform"><div class="dlineas">' +
       '<div class="dlinea">' + ico('<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0"/>') +
       '<span class="dlinea__txt"><strong>Suscripción mientras buscás</strong>' +
@@ -416,9 +411,9 @@
       '<span class="dlinea__monto"><b>' + pesos(P_CONTRATO) + '</b><span>una vez, a dividir</span></span></div>' +
 
       '<div class="dlinea dlinea--otrolado">' + ico('<path d="M3 10.5 12 3l9 7.5M5.5 12.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-7.5"/><path d="M9.5 21v-5h5v5"/>') +
-      '<span class="dlinea__txt"><strong>Plan de visibilidad · lo paga quien ofrece el lugar</strong>' +
-      '<span>El cuarto flujo del modelo, del otro lado del marketplace: publicación destacada, ' +
-        'acceso a buscadores verificados y métricas de interés.</span></span>' +
+      '<span class="dlinea__txt"><strong>Plan de visibilidad · no lo pagás vos</strong>' +
+      '<span>Lo abona quien ofrece el lugar para que su publicación aparezca primero y le lleguen ' +
+        'personas con identidad verificada.</span></span>' +
       '<span class="dlinea__monto"><b>' + pesos(P_VISIB) + '</b><span>por mes publicado</span></span></div>' +
       '</div>' +
 
@@ -429,38 +424,39 @@
         '<b class="bueno">' + pesos(garantia) + '</b></div>' +
       '<div class="dcompara__fila"><span>Lo que te queda disponible</span>' +
         '<b class="bueno">' + pesos(adelanto - garantia) + '</b></div>' +
-      '<p class="dcompara__nota">Estimación orientativa sobre el alquiler elegido. El costo final ' +
-        'depende de cada caso, pero el orden de magnitud es el argumento: entrar deja de requerir ' +
-        'inmovilizar medio año de alquiler.</p></div></div>' +
+      '<p class="dcompara__nota">Estimación sobre el alquiler que elegiste. El costo final de la ' +
+        'garantía depende de tu situación y se confirma antes de firmar, pero nunca implica ' +
+        'inmovilizar meses de alquiler.</p></div></div>' +
       '<div class="dacciones">' + btnAtras +
-      '<button class="btn btn--primary btn--lg" data-ir="' + (st.i + 1) + '"><span>Firmar y cerrar</span></button>' +
+      '<button class="btn btn--primary btn--lg" data-ir="' + (st.i + 1) + '"><span>Continuar con el acuerdo</span></button>' +
       '</div></section>';
   }
 
   /* ----------------------------------------------------------------- cierre -- */
   function vCierre() {
     const c = st.match || CANDIDATOS[0];
+    const lista = VIVIENDAS.map(v => Object.assign({}, v, { pp: v.total / v.personas,
+      dif: Math.abs(v.total / v.personas - st.presupuesto) })).sort((a, b) => a.dif - b.dif);
+    const v = lista[st.vivienda || 0];
     const items = [
-      ['Perfil de convivencia', 'Seis dimensiones que se vuelven criterios comparables, no texto libre.'],
-      ['Score de afinidad calculado', 'Comparación ponderada entre personas: ' + afinidad(c).pct + '% con ' + c.nombre + '.'],
-      ['Match habitacional', 'El match incluye la vivienda: personas + espacio + condiciones.'],
-      ['Formalización', 'Garantía digital en lugar de garante, contrato y pagos trazables.'],
-      ['Monetización', 'Tres momentos de cobro, cada uno atado a un valor entregado.']
+      ['Firma digital', 'Te llega el contrato y el acuerdo de convivencia para firmar con ' + c.nombre + '. Válido legalmente.'],
+      ['Garantía digital', 'La emitimos con la aseguradora una vez firmado. No necesitás garante propietario.'],
+      ['Depósito y primer mes', 'Se pagan desde la plataforma, con comprobante para las dos partes.'],
+      ['Coordinación de la mudanza', 'Fecha de entrada, llaves y estado del lugar documentado con fotos.'],
+      ['Soporte durante todo el alquiler', 'Canal de reporte y mediación si algo de la convivencia se complica.']
     ];
     return '<section class="dpantalla dcierre">' +
       '<div class="dcierre__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></div>' +
-      '<h1 class="dtitulo">Ese es el punta a punta<br><span class="accent">de Nidos.</span></h1>' +
-      '<p class="dbajada" style="margin-inline:auto">Del registro al contrato firmado, sin salir de ' +
-        'la plataforma y sin garante propietario. Lo que acabás de recorrer es el alcance funcional ' +
-        'que el MVP proyecta construir.</p>' +
+      '<h1 class="dtitulo">Tu solicitud está<br><span class="accent">en marcha.</span></h1>' +
+      '<p class="dbajada" style="margin-inline:auto">Reservamos ' + esc(v.zona) + ' para vos y ' +
+        esc(c.nombre) + ' por 48 horas mientras se completa el acuerdo. Esto es lo que sigue:</p>' +
       '<div class="dresumen">' + items.map(x =>
         '<div class="dresumen__it"><span class="dresumen__ok">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span>' +
         '<span><b>' + esc(x[0]) + ':</b> ' + esc(x[1]) + '</span></div>').join('') + '</div>' +
       '<div class="dacciones" style="justify-content:center">' +
-      '<a class="btn btn--primary btn--lg" href="index.html"><span>Ir a la lista de espera</span></a>' +
+      '<a class="btn btn--primary btn--lg" href="index.html"><span>Volver al inicio</span></a>' +
       '<button class="btn btn--outline" data-ir="0">Recorrer de nuevo</button></div>' +
-      '<p class="dnota">Prototipo con fines de validación · New Business Lab, UdeSA · Grupo 29</p>' +
       '</section>';
   }
 

@@ -22,13 +22,13 @@
 .logo--demo strong { font-size: 25px; font-weight: 800; letter-spacing: -.03em; color: var(--navy); }
 .logo--demo .logo__mark { width: 30px; height: 27px; }
 
+/* Chip discreto de entorno, como en cualquier sandbox de producto. */
 .dbadge {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 6px 13px; border-radius: 99px;
-  background: #FFF7ED; border: 1.5px solid #FED7AA; color: #9A3412;
-  font-size: 12.5px; font-weight: 600; line-height: 1.2;
+  display: inline-flex; align-items: center;
+  padding: 4px 11px; border-radius: 99px;
+  background: var(--bg-cool); color: var(--slate);
+  font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
 }
-.dbadge svg { width: 15px; height: 15px; flex: none; }
 
 .dbar__acciones { margin-left: auto; display: flex; align-items: center; gap: 14px; }
 .dbar__paso { font-size: 13.5px; font-weight: 600; color: var(--slate-light); white-space: nowrap; }
@@ -285,10 +285,18 @@
 /* ----------------------------------------------------------------- FOOTER -- */
 .dfooter {
   border-top: 1px solid var(--line); background: #fff;
-  padding: 26px 24px 34px; text-align: center;
+  padding: 30px 24px 36px; text-align: center;
 }
-.dfooter p { max-width: 76ch; margin: 0 auto; font-size: 13px; line-height: 1.6; color: var(--slate-light); }
-.dfooter p + p { margin-top: 12px; }
+.dfooter__nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 26px; }
+.dfooter__nav a {
+  font-size: 14px; font-weight: 500; color: var(--slate); text-decoration: none;
+}
+.dfooter__nav a:hover { color: var(--green-dark); text-decoration: underline; }
+.dfooter__meta { margin-top: 18px; font-size: 13.5px; color: var(--slate-light); }
+.dfooter__legal {
+  margin: 12px auto 0; max-width: 62ch;
+  font-size: 11.5px; line-height: 1.5; color: #A9B6C6;
+}
 
 /* ------------------------------------------------------------ RESPONSIVE --- */
 @media (max-width: 940px) {
