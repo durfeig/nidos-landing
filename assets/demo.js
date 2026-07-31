@@ -19,6 +19,7 @@
 
   const TC        = CFG.TC_USD || 1400;
   const P_SUSCRIP = (CFG.PRECIO_SUSCRIPCION_USD || 15) * TC;
+  const P_VISIB   = (CFG.PRECIO_VISIBILIDAD_USD || 12) * TC;
   const P_CONTRATO= (CFG.PRECIO_CONTRATO_USD || 25) * TC;
   const PCT_GAR   = CFG.GARANTIA_PCT_ANUAL || 0.06;
   const MESES_AD  = CFG.MESES_ADELANTO_SIN_GARANTIA || 6;
@@ -391,7 +392,7 @@
       '<p class="deyebrow">Formalización · así monetiza Nidos</p>' +
       '<h1 class="dtitulo">De un acuerdo de palabra<br><span class="accent">a un contrato real.</span></h1>' +
       '<p class="dbajada">Elegiste ' + esc(v.zona) + ' a ' + pesos(v.pp) + ' por persona. Estos son ' +
-        'los tres momentos en los que la plataforma cobra, y por qué cada uno se paga.</p></div>' +
+        'los cuatro flujos de ingreso del modelo, cuándo se cobra cada uno y quién lo paga.</p></div>' +
       '<div class="dform"><div class="dlineas">' +
       '<div class="dlinea">' + ico('<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0"/>') +
       '<span class="dlinea__txt"><strong>Suscripción mientras buscás</strong>' +
@@ -408,6 +409,12 @@
       '<span class="dlinea__txt"><strong>Contrato y acuerdo de convivencia</strong>' +
       '<span>Contrato con validez legal, reglas firmadas por las dos partes, depósito y pagos trazables.</span></span>' +
       '<span class="dlinea__monto"><b>' + pesos(P_CONTRATO) + '</b><span>una vez, a dividir</span></span></div>' +
+
+      '<div class="dlinea dlinea--otrolado">' + ico('<path d="M3 10.5 12 3l9 7.5M5.5 12.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-7.5"/><path d="M9.5 21v-5h5v5"/>') +
+      '<span class="dlinea__txt"><strong>Plan de visibilidad · lo paga quien ofrece el lugar</strong>' +
+      '<span>El cuarto flujo del modelo, del otro lado del marketplace: publicación destacada, ' +
+        'acceso a buscadores verificados y métricas de interés.</span></span>' +
+      '<span class="dlinea__monto"><b>' + pesos(P_VISIB) + '</b><span>por mes publicado</span></span></div>' +
       '</div>' +
 
       '<div class="dcompara"><h3>El costo de entrar, comparado</h3>' +

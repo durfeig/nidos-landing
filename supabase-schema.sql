@@ -105,6 +105,7 @@ drop view if exists public.v_demanda_geo;
 drop view if exists public.v_referidos;
 drop view if exists public.v_canales;
 drop view if exists public.v_visitas_diarias;
+drop view if exists public.v_adopcion;
 
 -- Un lead por fila con todas sus respuestas pivoteadas: la tabla que querés
 -- exportar a CSV para el entregable.
@@ -122,9 +123,12 @@ select
   max(case when r.clave = 'presupuesto'     then r.valor_num end) as presupuesto_ars,
   max(case when r.clave = 'urgencia'        then r.valor end) as urgencia,
   max(case when r.clave = 'barrera'         then r.valor end) as barrera_principal,
+  -- flujos de monetización del Doc #3: cada puerta paga los que le corresponden
   max(case when r.clave = 'wtp_suscripcion' then r.valor end) as wtp_suscripcion,
+  max(case when r.clave = 'wtp_visibilidad' then r.valor end) as wtp_visibilidad,
   max(case when r.clave = 'wtp_garantia'    then r.valor end) as wtp_garantia,
   max(case when r.clave = 'wtp_contrato'    then r.valor end) as wtp_contrato,
+  max(case when r.clave = 'valor_garantia'  then r.valor end) as valor_garantia_oferente,
   max(case when r.clave = 'comentario'      then r.valor end) as comentario,
   max(case when r.clave = 'whatsapp'        then r.valor end) as whatsapp,
   coalesce(max(r.paso), 0) as paso_maximo,
@@ -198,13 +202,54 @@ group by valor
 order by menciones desc;
 
 -- Disposición a pagar por cada flujo de monetización del Doc #3.
+-- Segmentada por puerta: la suscripción (USD 15) la paga el buscador y el plan
+-- de visibilidad (USD 12) el oferente, así que no pueden agregarse juntos.
 create or replace view public.v_wtp as
-select clave as flujo, valor as respuesta, count(*) as n,
-       round(100.0 * count(*) / sum(count(*)) over (partition by clave), 1) as pct
-from public.respuestas
-where clave like 'wtp_%'
-group by clave, valor
-order by clave, n desc;
+select
+  l.puerta,
+  r.clave  as flujo,
+  r.valor  as respuesta,
+  count(*) as n,
+  round(100.0 * count(*) / sum(count(*)) over (partition by l.puerta, r.clave), 1) as pct
+from public.respuestas r
+join public.leads l on l.session_id = r.session_id
+where r.clave like 'wtp_%'
+group by l.puerta, r.clave, r.valor
+order by l.puerta, r.clave, n desc;
+
+-- Adopción declarada contra los supuestos del unit economics del Doc #3.
+-- Criterio: cuentan como adopción las dos respuestas afirmativas de la escala.
+-- El Doc #3 asume 50% de adopción de garantía digital y 45% de contrato.
+create or replace view public.v_adopcion as
+with base as (
+  select
+    r.clave as flujo, l.puerta,
+    count(*) as respuestas,
+    count(*) filter (
+      where r.valor in ('Sí, lo pagaría sin dudar', 'Lo pagaría si funciona bien')
+    ) as afirmativas
+  from public.respuestas r
+  join public.leads l on l.session_id = r.session_id
+  where r.clave like 'wtp_%'
+  group by 1, 2
+)
+select
+  flujo, puerta, respuestas, afirmativas,
+  round(100.0 * afirmativas / nullif(respuestas, 0), 1) as adopcion_pct,
+  case flujo
+    when 'wtp_garantia'    then 50
+    when 'wtp_contrato'    then 45
+    when 'wtp_suscripcion' then null
+    when 'wtp_visibilidad' then null
+  end as supuesto_doc3_pct,
+  case flujo
+    when 'wtp_suscripcion' then 'USD 15/mes · 1,5 meses promedio'
+    when 'wtp_visibilidad' then 'USD 12/mes · 1 mes promedio'
+    when 'wtp_garantia'    then '6% del alquiler anual'
+    when 'wtp_contrato'    then 'USD 25 flat, a dividir'
+  end as precio_doc3
+from base
+order by flujo, puerta;
 
 -- Demanda por ciudad: valida en qué orden abrir las zonas. La ciudad se captura
 -- en el hero (paso 0), así que queda registrada aunque abandonen el onboarding.
@@ -318,8 +363,10 @@ alter view public.v_demanda_geo set (security_invoker = on);
 alter view public.v_referidos   set (security_invoker = on);
 alter view public.v_canales         set (security_invoker = on);
 alter view public.v_visitas_diarias set (security_invoker = on);
+alter view public.v_adopcion       set (security_invoker = on);
 
 revoke all on public.v_leads, public.v_ab_test, public.v_dropoff,
               public.v_barreras, public.v_wtp, public.v_demanda_geo,
-              public.v_referidos, public.v_canales, public.v_visitas_diarias
+              public.v_referidos, public.v_canales, public.v_visitas_diarias,
+              public.v_adopcion
 from anon, authenticated;

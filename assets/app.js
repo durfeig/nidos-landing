@@ -224,6 +224,16 @@
     { v: 'No lo pagaría',                      d: 'Preferiría seguir resolviéndolo por mi cuenta' }
   ];
 
+  /* La garantía digital la paga el inquilino, no el oferente (Doc #3). Para el
+     oferente no se puede preguntar disposición a pagar por algo que no paga:
+     lo que se mide es cuánto pesa en su decisión de usar la plataforma. */
+  const ESCALA_VALOR = [
+    { v: 'Decisivo, sin eso no comparto',  d: 'Es la condición que me faltaba para animarme' },
+    { v: 'Suma bastante',                  d: 'Me daría bastante más tranquilidad' },
+    { v: 'Suma un poco',                   d: 'Ayuda, pero no es lo que define' },
+    { v: 'No me cambia nada',              d: 'Mi decisión no pasa por ahí' }
+  ];
+
   /* ===========================================================================
    * Definición de los pasos
    * Cada paso: { clave, titulo, bajada, tipo, opciones, render, validar }
@@ -477,11 +487,11 @@
   }
 
   /* --- Paso de disposición a pagar: precios calculados sobre lo que declaró -- */
-  function bloqueWtp(clave, titulo, htmlPrecio) {
+  function bloqueWtp(clave, titulo, htmlPrecio, escala) {
     const guardado = estado.respuestas[clave];
     return '<div class="wtp-bloque"><h3>' + titulo + '</h3>' + htmlPrecio +
       '<div class="opts" role="radiogroup">' +
-      ESCALA_WTP.map(o =>
+      (escala || ESCALA_WTP).map(o =>
         '<label class="opt"><input type="radio" name="' + clave + '" value="' + escapar(o.v) + '"' +
         (guardado && guardado.valor === o.v ? ' checked' : '') + '>' +
         '<span class="opt__box"><span class="opt__text">' +
@@ -522,29 +532,32 @@
   }
 
   function renderWtpOferta() {
-    const alquiler = (estado.respuestas.presupuesto && estado.respuestas.presupuesto.valor_num) || 350000;
     const visib    = CFG.PRECIO_VISIBILIDAD_USD * CFG.TC_USD;
     const contrato = CFG.PRECIO_CONTRATO_USD * CFG.TC_USD;
 
-    return bloqueWtp('wtp_suscripcion',
+    /* Los dos flujos que paga el oferente según el Doc #3: plan de visibilidad
+       y su mitad del contrato. La garantía la paga el inquilino, así que ahí se
+       mide valor percibido, no disposición a pagar. */
+    return bloqueWtp('wtp_visibilidad',
       'Publicación destacada y acceso a buscadores verificados',
       '<div class="precio"><p class="precio__monto">' + pesos(visib) +
         ' <small>por mes de publicación</small></p>' +
       '<p class="precio__detalle">Tu lugar aparece primero, llegan solo personas con ' +
         'identidad verificada y ves métricas de quién se interesó.</p></div>'
-    ) + bloqueWtp('wtp_garantia',
-      'Cobertura si la persona deja de pagar',
-      '<div class="precio precio--destacado"><p class="precio__monto">' +
-        pesos(alquiler) + ' <small>por mes cubierto</small></p>' +
-      '<p class="precio__detalle">Nidos te garantiza el pago aunque la persona ' +
-        'incumpla, y se encarga del reclamo. Lo paga quien entra a vivir, ' +
-        'no vos: para vos es gratis y sin riesgo.</p></div>'
     ) + bloqueWtp('wtp_contrato',
       'Contrato y acuerdo de convivencia gestionado',
-      '<div class="precio"><p class="precio__monto">' + pesos(contrato) +
-        ' <small>una vez, a dividir entre las partes</small></p>' +
+      '<div class="precio"><p class="precio__monto">' + pesos(contrato / 2) +
+        ' <small>una vez, tu mitad del contrato</small></p>' +
       '<p class="precio__detalle">Contrato con validez legal, reglas de convivencia ' +
-        'firmadas y respaldo si hay que mediar en un conflicto.</p></div>'
+        'firmadas y respaldo si hay que mediar en un conflicto. El costo total es ' +
+        pesos(contrato) + ' y se divide entre las partes.</p></div>'
+    ) + bloqueWtp('valor_garantia',
+      'La persona entra con garantía digital de Nidos',
+      '<div class="precio precio--destacado"><p class="precio__monto">Sin costo para vos</p>' +
+      '<p class="precio__detalle">Quien entra a vivir contrata la garantía, que te respalda ' +
+        'si deja de pagar. No lo pagás vos. ¿Cuánto pesa esto en tu decisión de ' +
+        'compartir tu lugar?</p></div>',
+      ESCALA_VALOR
     );
   }
 
@@ -614,10 +627,15 @@
     const filas = [];
     const faltantes = [];
 
+    /* El paso de precios no declara campos: sus claves dependen de la puerta,
+       porque cada lado paga flujos distintos del modelo. */
+    const clavesWtp = estado.puerta === 'tengo_lugar'
+      ? ['wtp_visibilidad', 'wtp_contrato', 'valor_garantia']
+      : ['wtp_suscripcion', 'wtp_garantia', 'wtp_contrato'];
+
     const claves = paso.campos
       ? paso.campos.map(c => ({ clave: c.clave, requerido: c.requerido, tipo: c.tipo }))
-      : ['wtp_suscripcion', 'wtp_garantia', 'wtp_contrato'].map(k =>
-          ({ clave: k, requerido: true, tipo: 'radio' }));
+      : clavesWtp.map(k => ({ clave: k, requerido: true, tipo: 'radio' }));
 
     claves.forEach(c => {
       let valor = null, num = null;
