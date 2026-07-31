@@ -38,6 +38,13 @@ window.NIDOS_CONFIG = {
   GARANTIA_PCT_ANUAL: 0.06,        // garantía digital: 6% del alquiler anual
   MESES_ADELANTO_SIN_GARANTIA: 6,  // lo que hoy piden sin garantía propietaria
 
+  /* De ese 6% que paga el inquilino, qué proporción queda para Nidos como
+   * comisión de intermediación. El resto es la prima del proveedor de seguros
+   * de caución. Supuesto a validar negociando con proveedores: emitir el seguro
+   * en cabeza propia requiere licencia de la SSN.
+   * Con 0.20, Nidos retiene el 20% de la prima y el 80% es costo pass-through. */
+  COMISION_GARANTIA_PCT: 0.20,
+
   /* ---------------------------------------------------------------------------
    * 4. ANALÍTICA  (opcional · dejá vacío lo que no uses)
    * ------------------------------------------------------------------------ */

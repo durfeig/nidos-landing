@@ -23,6 +23,7 @@
   const P_CONTRATO= (CFG.PRECIO_CONTRATO_USD || 25) * TC;
   const PCT_GAR   = CFG.GARANTIA_PCT_ANUAL || 0.06;
   const MESES_AD  = CFG.MESES_ADELANTO_SIN_GARANTIA || 6;
+  const COM_GAR   = CFG.COMISION_GARANTIA_PCT != null ? CFG.COMISION_GARANTIA_PCT : 0.20;
 
   /* ===========================================================================
    * Dimensiones del perfil de convivencia
@@ -402,7 +403,11 @@
       '<div class="dlinea dlinea--destaca">' + ico('<path d="M12 3l7.5 3v5.5c0 4.4-3 8.2-7.5 9.5-4.5-1.3-7.5-5.1-7.5-9.5V6L12 3Z"/><path d="m8.8 12 2.3 2.3 4.1-4.4"/>') +
       '<span class="dlinea__txt"><strong>Garantía digital</strong>' +
       '<span>Reemplaza al garante propietario que no tenés: es el ' + Math.round(PCT_GAR * 100) +
-        '% del alquiler anual, una sola vez.</span></span>' +
+        '% del alquiler anual, una sola vez.</span>' +
+      '<span class="dsplit"><span class="dsplit__it">Prima del asegurador de caución · <b>' +
+        pesos(garantia * (1 - COM_GAR)) + '</b></span>' +
+      '<span class="dsplit__it">Comisión de Nidos por intermediar · <b>' +
+        pesos(garantia * COM_GAR) + '</b></span></span></span>' +
       '<span class="dlinea__monto"><b>' + pesos(garantia) + '</b><span>una vez</span></span></div>' +
 
       '<div class="dlinea">' + ico('<path d="M7 3.5h10l3 3.5v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M8.5 12h7M8.5 16h4"/>') +
