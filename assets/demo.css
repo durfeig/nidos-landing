@@ -267,6 +267,7 @@
 .dcompara__fila b { font-size: 19px; font-weight: 800; letter-spacing: -.03em; white-space: nowrap; }
 .dcompara__fila b.tachado { color: #FCA5A5; text-decoration: line-through; text-decoration-thickness: 2px; }
 .dcompara__fila b.bueno { color: var(--green-bright); }
+.dcompara__fila b.neutro { color: #A8BCD4; font-size: 15px; font-weight: 700; }
 .dcompara__nota { margin-top: 14px; font-size: 12.5px; line-height: 1.5; color: #8FA6C0; }
 
 /* ------------------------------------------------------------------ CIERRE -- */

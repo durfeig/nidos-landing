@@ -14,16 +14,16 @@
   const CFG = window.NIDOS_CONFIG || {};
   const $ = s => document.querySelector(s);
   const pesos = n => '$' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(Math.round(n));
+  const usd = n => 'USD ' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(Math.round(n / TC));
   const esc = s => String(s).replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  /* Modelo vigente, fase 1: nunca se cobra por buscar; se cobra al cierre. */
   const TC        = CFG.TC_USD || 1400;
-  const P_SUSCRIP = (CFG.PRECIO_SUSCRIPCION_USD || 15) * TC;
-  const P_VISIB   = (CFG.PRECIO_VISIBILIDAD_USD || 12) * TC;
-  const P_CONTRATO= (CFG.PRECIO_CONTRATO_USD || 25) * TC;
-  const PCT_GAR   = CFG.GARANTIA_PCT_ANUAL || 0.06;
+  const P_PACK    = (CFG.PRECIO_PACK_USD || 100) * TC;
+  const P_PAGOS   = (CFG.PRECIO_PAGOS_USD || 4) * TC;
+  const PCT_FEE   = CFG.SUCCESS_FEE_PCT || 0.10;
   const MESES_AD  = CFG.MESES_ADELANTO_SIN_GARANTIA || 6;
-  const COM_GAR   = CFG.COMISION_GARANTIA_PCT != null ? CFG.COMISION_GARANTIA_PCT : 0.20;
 
   /* ===========================================================================
    * Dimensiones del perfil de convivencia
@@ -118,13 +118,14 @@
 
   /* --- Propiedades ficticias aptas para compartir --------------------------- */
   const VIVIENDAS = [
-    { zona: 'Villa Crespo', calle: 'Aguirre y Julián Álvarez', amb: 3, personas: 2, total: 760000,
+    /* Habitación tipo de la presentación: USD 250 por persona ($350.000 al TC 1.400) */
+    { zona: 'Villa Crespo', calle: 'Aguirre y Julián Álvarez', amb: 3, personas: 2, total: 680000,
       color: ['#0F766E', '#14B8A6'], tag: 'Verificada',
       reglas: ['Mascotas permitidas', 'No se fuma adentro', 'Expensas incluidas'] },
-    { zona: 'Caballito', calle: 'Rojas y Rivadavia', amb: 4, personas: 3, total: 1050000,
+    { zona: 'Caballito', calle: 'Rojas y Rivadavia', amb: 3, personas: 2, total: 700000,
       color: ['#7C3AED', '#A78BFA'], tag: 'Verificada',
       reglas: ['Sin mascotas', 'No se fuma', 'Expensas y wifi incluidos'] },
-    { zona: 'Belgrano', calle: 'Olazábal y Cabildo', amb: 3, personas: 2, total: 900000,
+    { zona: 'Belgrano', calle: 'Olazábal y Cabildo', amb: 3, personas: 2, total: 640000,
       color: ['#B45309', '#F59E0B'], tag: 'Nueva',
       reglas: ['Mascotas a convenir', 'Balcón para fumadores', 'Expensas aparte'] }
   ];
@@ -195,7 +196,7 @@
       ['Tu perfil de convivencia', 'Horarios, orden, mascotas y estilo de vida'],
       ['Personas compatibles', 'Te mostramos con quién tenés más afinidad'],
       ['El lugar', 'Espacios aptos para compartir, con el precio total a la vista'],
-      ['El acuerdo', 'Garantía digital, contrato y pagos, todo desde acá']
+      ['La mudanza', 'Acuerdo por escrito y depósito custodiado. Pagás solo si te mudás']
     ];
     return '<section class="dpantalla dintro">' +
       '<div><p class="deyebrow">Bienvenido a Nidos</p>' +
@@ -313,7 +314,7 @@
     return '<section class="dpantalla"><div class="dcabecera">' +
       '<p class="deyebrow">Personas compatibles</p>' +
       '<h1 class="dtitulo">Estas personas buscan<br><span class="accent">algo parecido a vos.</span></h1>' +
-      '<p class="dbajada">Están ordenadas por compatibilidad con tu perfil. Si te interesa alguien ' +
+      '<p class="dbajada">Cada perfil muestra su afinidad con el tuyo. Si te interesa alguien ' +
         'y a esa persona también, se abre el chat: nadie puede escribirte sin que vos lo elijas.</p></div>' +
       '<div class="dswipe"><div class="dmazo">' + mazo + '</div>' +
       '<div><div class="dcard"><h3>¿Cómo calculamos la afinidad?</h3>' +
@@ -380,53 +381,54 @@
     const lista = VIVIENDAS.map(v => Object.assign({}, v, { pp: v.total / v.personas,
       dif: Math.abs(v.total / v.personas - st.presupuesto) })).sort((a, b) => a.dif - b.dif);
     const v = lista[st.vivienda || 0];
-    const garantia = v.pp * 12 * PCT_GAR;
     const adelanto = v.pp * MESES_AD;
+    const fee      = v.pp * PCT_FEE;
     const ico = d => '<span class="dlinea__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg></span>';
 
     return '<section class="dpantalla"><div class="dcabecera">' +
       '<p class="deyebrow">Condiciones de ingreso</p>' +
-      '<h1 class="dtitulo">De un acuerdo de palabra<br><span class="accent">a un contrato real.</span></h1>' +
-      '<p class="dbajada">Elegiste ' + esc(v.zona) + ' a ' + pesos(v.pp) + ' por persona. Esto es ' +
-        'todo lo que pagás para entrar, sin garantía propietaria y sin adelantar medio año.</p></div>' +
+      '<h1 class="dtitulo">De un acuerdo de palabra<br><span class="accent">a uno por escrito.</span></h1>' +
+      '<p class="dbajada">Elegiste ' + esc(v.zona) + ' a ' + pesos(v.pp) + ' por persona. Buscar y ' +
+        'hacer match no se paga: Nidos cobra solo si te mudás. Esto es todo lo que pagás para ' +
+        'entrar, sin garantía propietaria y sin adelantar medio año.</p></div>' +
       '<div class="dform"><div class="dlineas">' +
       '<div class="dlinea">' + ico('<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0"/>') +
-      '<span class="dlinea__txt"><strong>Suscripción mientras buscás</strong>' +
-      '<span>Matching, mensajería sin límite, perfil verificado y acceso anticipado. Se cancela cuando encontrás.</span></span>' +
-      '<span class="dlinea__monto"><b>' + pesos(P_SUSCRIP) + '</b><span>por mes</span></span></div>' +
+      '<span class="dlinea__txt"><strong>Perfil, matching y mensajes</strong>' +
+      '<span>Todo lo que hiciste hasta acá. Nunca cobramos por buscar ni por hablar con alguien.</span></span>' +
+      '<span class="dlinea__monto"><b>Gratis</b><span>siempre</span></span></div>' +
 
       '<div class="dlinea dlinea--destaca">' + ico('<path d="M12 3l7.5 3v5.5c0 4.4-3 8.2-7.5 9.5-4.5-1.3-7.5-5.1-7.5-9.5V6L12 3Z"/><path d="m8.8 12 2.3 2.3 4.1-4.4"/>') +
-      '<span class="dlinea__txt"><strong>Garantía digital</strong>' +
-      '<span>Reemplaza al garante propietario que no tenés: es el ' + Math.round(PCT_GAR * 100) +
-        '% del alquiler anual, una sola vez.</span>' +
-      '<span class="dsplit"><span class="dsplit__it">Prima del asegurador de caución · <b>' +
-        pesos(garantia * (1 - COM_GAR)) + '</b></span>' +
-      '<span class="dsplit__it">Comisión de Nidos por intermediar · <b>' +
-        pesos(garantia * COM_GAR) + '</b></span></span></span>' +
-      '<span class="dlinea__monto"><b>' + pesos(garantia) + '</b><span>una vez</span></span></div>' +
+      '<span class="dlinea__txt"><strong>Pack Mudanza Segura</strong>' +
+      '<span>Lo que reemplaza la confianza a ciegas del grupo de Facebook, en el momento de cerrar.</span>' +
+      '<span class="dsplit"><span class="dsplit__it"><b>Verificación</b> de identidad de las dos partes</span>' +
+      '<span class="dsplit__it"><b>Acuerdo de convivencia y económico</b> por escrito y firmado</span>' +
+      '<span class="dsplit__it"><b>Depósito custodiado</b> en Mercado Pago: se libera cuando entrás y está todo como se acordó</span>' +
+      '<span class="dsplit__it"><b>Semáforo de subalquiler</b>: chequeamos que el lugar se pueda compartir</span></span></span>' +
+      '<span class="dlinea__monto"><b>' + pesos(P_PACK) + '</b><span>' + usd(P_PACK) + ' · una vez, al cerrar</span></span></div>' +
 
-      '<div class="dlinea">' + ico('<path d="M7 3.5h10l3 3.5v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M8.5 12h7M8.5 16h4"/>') +
-      '<span class="dlinea__txt"><strong>Contrato y acuerdo de convivencia</strong>' +
-      '<span>Contrato con validez legal, reglas firmadas por las dos partes, depósito y pagos trazables.</span></span>' +
-      '<span class="dlinea__monto"><b>' + pesos(P_CONTRATO) + '</b><span>una vez, a dividir</span></span></div>' +
+      '<div class="dlinea">' + ico('<path d="M4 7.5h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-11Z"/><path d="M4 11h16M8 15.5h3"/>') +
+      '<span class="dlinea__txt"><strong>Pagos Nidos + Club · opcional</strong>' +
+      '<span>Alquiler y gastos de la casa divididos y cobrados mes a mes, con comprobante para todos. ' +
+        'Suma tareas, el acuerdo de convivencia a mano y el Club de beneficios. Un precio fijo por hogar.</span></span>' +
+      '<span class="dlinea__monto"><b>' + pesos(P_PAGOS) + '</b><span>' + usd(P_PAGOS) + ' · por mes, si lo activan</span></span></div>' +
 
       '<div class="dlinea dlinea--otrolado">' + ico('<path d="M3 10.5 12 3l9 7.5M5.5 12.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-7.5"/><path d="M9.5 21v-5h5v5"/>') +
-      '<span class="dlinea__txt"><strong>Plan de visibilidad · no lo pagás vos</strong>' +
-      '<span>Lo abona quien ofrece el lugar para que su publicación aparezca primero y le lleguen ' +
-        'personas con identidad verificada.</span></span>' +
-      '<span class="dlinea__monto"><b>' + pesos(P_VISIB) + '</b><span>por mes publicado</span></span></div>' +
+      '<span class="dlinea__txt"><strong>Fee de éxito · no lo pagás vos</strong>' +
+      '<span>Quien ofrece el lugar paga el ' + Math.round(PCT_FEE * 100) + '% de un mes, descontado ' +
+        'del depósito cuando se libera. Si no hay mudanza, nadie paga nada.</span></span>' +
+      '<span class="dlinea__monto"><b>' + pesos(fee) + '</b><span>' + usd(fee) + ' · una vez, solo si se cierra</span></span></div>' +
       '</div>' +
 
-      '<div class="dcompara"><h3>El costo de entrar, comparado</h3>' +
+      '<div class="dcompara"><h3>Lo que pagás para entrar, comparado</h3>' +
       '<div class="dcompara__fila"><span>Hoy, sin garante: ' + MESES_AD + ' meses de adelanto</span>' +
-        '<b class="tachado">' + pesos(adelanto) + '</b></div>' +
-      '<div class="dcompara__fila"><span>Con la garantía digital de Nidos</span>' +
-        '<b class="bueno">' + pesos(garantia) + '</b></div>' +
-      '<div class="dcompara__fila"><span>Lo que te queda disponible</span>' +
-        '<b class="bueno">' + pesos(adelanto - garantia) + '</b></div>' +
-      '<p class="dcompara__nota">Estimación sobre el alquiler que elegiste. El costo final de la ' +
-        'garantía depende de tu situación y se confirma antes de firmar, pero nunca implica ' +
-        'inmovilizar meses de alquiler.</p></div></div>' +
+        '<b class="tachado">' + pesos(adelanto) + ' · ' + usd(adelanto) + '</b></div>' +
+      '<div class="dcompara__fila"><span>Con Nidos: el Pack Mudanza Segura</span>' +
+        '<b class="bueno">' + pesos(P_PACK) + ' · ' + usd(P_PACK) + '</b></div>' +
+      '<div class="dcompara__fila"><span>Depósito de un mes, custodiado (vuelve al final)</span>' +
+        '<b class="neutro">' + pesos(v.pp) + '</b></div>' +
+      '<p class="dcompara__nota">Calculado sobre el alquiler que elegiste. El depósito no es un ' +
+        'costo: queda en custodia y se devuelve según el acuerdo. Próximamente: garantía digital ' +
+        'para alquilar un lugar entero sin garante, emitida por una aseguradora autorizada.</p></div></div>' +
       '<div class="dacciones">' + btnAtras +
       '<button class="btn btn--primary btn--lg" data-ir="' + (st.i + 1) + '"><span>Continuar con el acuerdo</span></button>' +
       '</div></section>';
@@ -439,9 +441,9 @@
       dif: Math.abs(v.total / v.personas - st.presupuesto) })).sort((a, b) => a.dif - b.dif);
     const v = lista[st.vivienda || 0];
     const items = [
-      ['Firma digital', 'Te llega el contrato y el acuerdo de convivencia para firmar con ' + c.nombre + '. Válido legalmente.'],
-      ['Garantía digital', 'La emitimos con la aseguradora una vez firmado. No necesitás garante propietario.'],
-      ['Depósito y primer mes', 'Se pagan desde la plataforma, con comprobante para las dos partes.'],
+      ['Semáforo de subalquiler', 'Confirmamos con quien ofrece el lugar que se puede compartir antes de que pongas un peso.'],
+      ['Firma digital', 'Te llega el acuerdo de convivencia y económico para firmar con ' + c.nombre + ' y con quien ofrece el lugar.'],
+      ['Depósito custodiado', 'Lo pagás por Mercado Pago y queda retenido: se libera cuando entrás y confirmás que todo está como se acordó.'],
       ['Coordinación de la mudanza', 'Fecha de entrada, llaves y estado del lugar documentado con fotos.'],
       ['Soporte durante todo el alquiler', 'Canal de reporte y mediación si algo de la convivencia se complica.']
     ];
@@ -554,7 +556,7 @@
       // perfil de ejemplo: nocturno, ordenado, tranquilo, sin mascota, sin humo, en casa
       const ejemplo = { horario: 1, orden: .5, social: 0, mascotas: .5, fumar: 0, casa: 1 };
       PREGUNTAS.forEach(q => { st.resp[q.clave] = ejemplo[q.clave]; });
-      st.presupuesto = 450000;
+      st.presupuesto = 350000;
       st.match = CANDIDATOS[0];
       st.vivienda = 0;
     }

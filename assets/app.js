@@ -1045,20 +1045,21 @@
     });
   }
 
-  /* Calculadora de garantía: los dos montos se recalculan con el alquiler
-     que declara la persona, igual que en el paso de precios del onboarding. */
+  /* Calculadora del costo de entrar: los meses de adelanto que pide el mercado
+     sin garante, contra el Pack Mudanza Segura (fase 1, precio fijo). El evento
+     conserva su nombre para no cortar la serie de analítica. */
   const gAlquiler = $('#g-alquiler');
   if (gAlquiler) {
     const gValor = $('#g-valor'), gHoy = $('#g-hoy'), gNidos = $('#g-nidos');
     const meses = CFG.MESES_ADELANTO_SIN_GARANTIA || 6;
-    const pct = CFG.GARANTIA_PCT_ANUAL || 0.06;
+    const pack = (CFG.PRECIO_PACK_USD || 100) * (CFG.TC_USD || 1400);
     let gTrackeado = false;
 
     const actualizarGarantia = () => {
       const v = Number(gAlquiler.value);
       gValor.innerHTML = pesos(v) + ' <span>por mes</span>';
       gHoy.textContent = pesos(v * meses);
-      gNidos.textContent = '~' + pesos(Math.round(v * 12 * pct));
+      gNidos.textContent = pesos(pack);
     };
 
     gAlquiler.addEventListener('input', () => {
