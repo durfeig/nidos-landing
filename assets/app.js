@@ -1052,7 +1052,7 @@
   if (gAlquiler) {
     const gValor = $('#g-valor'), gHoy = $('#g-hoy'), gNidos = $('#g-nidos');
     const meses = CFG.MESES_ADELANTO_SIN_GARANTIA || 6;
-    const pack = (CFG.PRECIO_PACK_USD || 100) * (CFG.TC_USD || 1400);
+    const pack = (CFG.PRECIO_PACK_USD || 100) * (CFG.TC_USD || 1560);
     let gTrackeado = false;
 
     const actualizarGarantia = () => {

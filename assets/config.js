@@ -32,7 +32,7 @@ window.NIDOS_CONFIG = {
    * mudanza. Se usan para calcular en vivo los precios del prototipo (/demo) y
    * la calculadora de la landing según el alquiler de cada persona.
    * ------------------------------------------------------------------------ */
-  TC_USD: 1400,                    // ARS por USD (Doc #3, abril 2026)
+  TC_USD: 1560,                    // ARS por USD (BNA venta, 29/10/2026)
   PRECIO_PACK_USD: 100,            // Pack Mudanza Segura, una vez, al cierre
   SUCCESS_FEE_PCT: 0.10,           // al oferente: 10% de un mes, solo si hay cierre
   PRECIO_PAGOS_USD: 4,             // opcional: Pagos Nidos + Club, por hogar y por mes

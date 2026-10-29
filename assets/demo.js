@@ -19,7 +19,7 @@
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   /* Modelo vigente, fase 1: nunca se cobra por buscar; se cobra al cierre. */
-  const TC        = CFG.TC_USD || 1400;
+  const TC        = CFG.TC_USD || 1560;
   const P_PACK    = (CFG.PRECIO_PACK_USD || 100) * TC;
   const P_PAGOS   = (CFG.PRECIO_PAGOS_USD || 4) * TC;
   const PCT_FEE   = CFG.SUCCESS_FEE_PCT || 0.10;
@@ -118,14 +118,14 @@
 
   /* --- Propiedades ficticias aptas para compartir --------------------------- */
   const VIVIENDAS = [
-    /* Habitación tipo de la presentación: USD 250 por persona ($350.000 al TC 1.400) */
-    { zona: 'Villa Crespo', calle: 'Aguirre y Julián Álvarez', amb: 3, personas: 2, total: 680000,
+    /* Habitación tipo de la presentación: USD 250 por persona ($390.000 al TC 1.560) */
+    { zona: 'Villa Crespo', calle: 'Aguirre y Julián Álvarez', amb: 3, personas: 2, total: 760000,
       color: ['#0F766E', '#14B8A6'], tag: 'Verificada',
       reglas: ['Mascotas permitidas', 'No se fuma adentro', 'Expensas incluidas'] },
-    { zona: 'Caballito', calle: 'Rojas y Rivadavia', amb: 3, personas: 2, total: 700000,
+    { zona: 'Caballito', calle: 'Rojas y Rivadavia', amb: 3, personas: 2, total: 780000,
       color: ['#7C3AED', '#A78BFA'], tag: 'Verificada',
       reglas: ['Sin mascotas', 'No se fuma', 'Expensas y wifi incluidos'] },
-    { zona: 'Belgrano', calle: 'Olazábal y Cabildo', amb: 3, personas: 2, total: 640000,
+    { zona: 'Belgrano', calle: 'Olazábal y Cabildo', amb: 3, personas: 2, total: 720000,
       color: ['#B45309', '#F59E0B'], tag: 'Nueva',
       reglas: ['Mascotas a convenir', 'Balcón para fumadores', 'Expensas aparte'] }
   ];
@@ -133,7 +133,7 @@
   /* ===========================================================================
    * Estado y motor de afinidad
    * ======================================================================== */
-  const st = { i: 0, resp: {}, zona: ZONAS[0], presupuesto: 350000,
+  const st = { i: 0, resp: {}, zona: ZONAS[0], presupuesto: 400000,
                mazo: 0, match: null, vivienda: null };
 
   function afinidad(cand) {
@@ -537,7 +537,7 @@
 
   $('#dreiniciar').addEventListener('click', () => {
     st.i = 0; st.resp = {}; st.mazo = 0; st.match = null; st.vivienda = null;
-    st.presupuesto = 350000; st.zona = ZONAS[0];
+    st.presupuesto = 400000; st.zona = ZONAS[0];
     history.replaceState(null, '', location.pathname);
     pintar();
   });
@@ -556,7 +556,7 @@
       // perfil de ejemplo: nocturno, ordenado, tranquilo, sin mascota, sin humo, en casa
       const ejemplo = { horario: 1, orden: .5, social: 0, mascotas: .5, fumar: 0, casa: 1 };
       PREGUNTAS.forEach(q => { st.resp[q.clave] = ejemplo[q.clave]; });
-      st.presupuesto = 350000;
+      st.presupuesto = 400000;
       st.match = CANDIDATOS[0];
       st.vivienda = 0;
     }
