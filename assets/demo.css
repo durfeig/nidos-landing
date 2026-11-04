@@ -307,10 +307,67 @@
   font-size: 11.5px; line-height: 1.5; color: #A9B6C6;
 }
 
+
+/* ----------------------------------------------- LISTA POR AFINIDAD --- */
+.dcomo { margin-top: 12px; font-size: 13px; color: var(--slate-light); max-width: 70ch; }
+.dcomo summary { cursor: pointer; font-weight: 600; color: var(--slate); width: fit-content; }
+.dcomo p { margin: 6px 0 0; line-height: 1.5; }
+.dlista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.dpers {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column;
+}
+.dpers--top { border-color: #86D9A2; box-shadow: var(--shadow-lg); }
+.dpers--baja { opacity: .8; }
+.dpers__foto { height: 150px; background-size: cover; background-position: center; position: relative; }
+.dpers__rango {
+  position: absolute; top: 12px; left: 12px; padding: 5px 11px; border-radius: 99px;
+  background: rgba(255,255,255,.94); color: var(--navy); font-size: 12px; font-weight: 700;
+}
+.dpers--top .dpers__rango { background: var(--green); color: #fff; }
+.dpers--baja .dpers__rango { background: #FEF3C7; color: #92400E; }
+.dpers__precio {
+  position: absolute; bottom: 12px; right: 12px; padding: 6px 12px; border-radius: 12px;
+  background: rgba(15,31,61,.86); color: #fff; font-size: 15px; font-weight: 800; letter-spacing: -.02em;
+}
+.dpers__precio small { font-size: 11.5px; font-weight: 500; opacity: .85; letter-spacing: 0; }
+.dpers__cuerpo { padding: 18px 20px 20px; display: flex; flex-direction: column; flex: 1; }
+.dpers__hab { margin: 12px 0 0; font-size: 13.5px; color: var(--slate); }
+.dpers__hab b { color: var(--navy); }
+.dpers .dficha__bio { margin-top: 10px; font-size: 14px; }
+.dpers__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.dpers__chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px 4px 5px; border-radius: 99px;
+  background: var(--bg-tint); font-size: 12.5px; color: var(--navy);
+}
+.dpers__chip i {
+  width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center;
+  font-style: normal; font-size: 10px; font-weight: 800; color: #fff;
+}
+.dpers__chip[data-v="si"] i { background: var(--green); }
+.dpers__chip[data-v="mas"] i { background: #F59E0B; }
+.dpers__chip[data-v="no"] i { background: #DC2626; }
+.dpers__cta { margin-top: auto; align-self: flex-start; }
+.dpers__chips + .dpers__cta { margin-top: 16px; }
+
+/* ------------------------------------------------ MATCH + LA CASA ----- */
+.dmatch2 { display: flex; align-items: center; gap: 22px; }
+.dmatch2 .dmatch__avatares { margin: 0; flex: none; }
+.dmatch2 .dmatch__avatares .davatar { width: 70px; height: 70px; font-size: 26px; }
+.dmsg--suelto { margin-top: 18px; max-width: 460px; }
+.dsub { margin-top: 30px; font-size: 22px; font-weight: 800; }
+.dgal { margin-top: 14px; display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; height: 340px; }
+.dgal__f { border-radius: var(--radius); background-size: cover; background-position: center; }
+.dgal__f--main { grid-row: 1 / 3; }
+.dgal--una { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.dgal--una .dgal__f--main { grid-row: auto; }
+.dmatch2 + .dmsg--suelto + .dsub + .dgal + .dhab { margin-top: 18px; }
+
 /* ------------------------------------------------------------ RESPONSIVE --- */
 @media (max-width: 940px) {
   .dintro, .dperfil, .dswipe, .dform, .dhab { grid-template-columns: 1fr; gap: 30px; }
-  .dviviendas { grid-template-columns: 1fr; }
+  .dviviendas, .dlista { grid-template-columns: 1fr; }
+  .dgal { height: 260px; }
   .dmazo { max-width: 460px; }
 }
 @media (max-width: 700px) {
@@ -320,4 +377,7 @@
   .dapp { padding: 30px 18px 50px; }
   .dficha { padding: 20px; }
   .dviv__foto { height: 110px; }
+  .dmatch2 { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .dgal { grid-template-columns: 1fr 1fr; grid-template-rows: 180px 110px; height: auto; }
+  .dgal__f--main { grid-row: auto; grid-column: 1 / 3; }
 }

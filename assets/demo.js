@@ -108,25 +108,26 @@
       bio: 'Vivo en un 3 ambientes y se liberó la otra habitación. Cocino mucho, cuido mis plantas y necesito silencio a la mañana para trabajar.',
       v: { horario: 1, orden: .5, social: .5, mascotas: .5, fumar: .5, casa: 1 },
       /* Habitación tipo de la presentación: USD 250 por mes ($390.000 al TC 1.560) */
-      hab: { b: 1, amb: 3, precio: 390000, color: ['#0F766E', '#14B8A6'], tag: 'Verificada',
+      hab: { b: 1, amb: 3, precio: 390000,
+             fotos: ['sofia-hab', 'sofia-living', 'sofia-cocina'], color: ['#0F766E', '#14B8A6'], tag: 'Verificada',
              det: 'Habitación propia con placard · baño compartido · balcón',
              reglas: ['Mascotas a convenir', 'No se fuma adentro', 'Expensas y wifi incluidos'] } },
     { nombre: 'Mateo', edad: 24, ocupa: 'Estudiante de Ingeniería · UBA', color: ['#0EA5E9', '#22D3EE'],
       bio: 'Vine de Mendoza a estudiar y alquilo un 2 ambientes con una gata tranquila. Entreno temprano y estoy en la facultad todo el día.',
       v: { horario: 0, orden: 1, social: 1, mascotas: 1, fumar: 0, casa: 0 },
-      hab: { b: 0, amb: 2, precio: 380000, color: ['#7C3AED', '#A78BFA'], tag: 'Verificada',
+      hab: { b: 0, amb: 2, precio: 380000, fotos: ['mateo-hab'], color: ['#7C3AED', '#A78BFA'], tag: 'Verificada',
              det: 'Habitación propia · baño compartido',
              reglas: ['Hay una gata en casa', 'Balcón para fumar', 'Expensas aparte'] } },
     { nombre: 'Camila', edad: 29, ocupa: 'Enfermera · turnos rotativos', color: ['#F43F5E', '#FB7185'],
       bio: 'Tengo una habitación libre en mi casa. Necesito orden y tranquilidad porque duermo en horarios raros, y prefiero un ambiente sin humo.',
       v: { horario: 0, orden: 0, social: 0, mascotas: 0, fumar: 0, casa: .5 },
-      hab: { b: 2, amb: 3, precio: 360000, color: ['#B45309', '#F59E0B'], tag: 'Nueva',
+      hab: { b: 2, amb: 3, precio: 360000, fotos: ['camila-hab'], color: ['#B45309', '#F59E0B'], tag: 'Nueva',
              det: 'Habitación propia · baño compartido · patio',
              reglas: ['Sin mascotas', 'No se fuma', 'Silencio después de las 23'] } },
     { nombre: 'Tomás', edad: 27, ocupa: 'Desarrollador · remoto', color: ['#059669', '#34D399'],
       bio: 'Trabajo desde casa y busco a alguien para la segunda habitación. Valoro un buen escritorio y wifi, y cocino los fines de semana con amigos.',
       v: { horario: 1, orden: .5, social: 1, mascotas: .5, fumar: .5, casa: 1 },
-      hab: { b: 0, amb: 3, precio: 400000, color: ['#1D4ED8', '#60A5FA'], tag: 'Verificada',
+      hab: { b: 0, amb: 3, precio: 400000, fotos: ['tomas-hab'], color: ['#1D4ED8', '#60A5FA'], tag: 'Verificada',
              det: 'Habitación propia con escritorio · baño compartido',
              reglas: ['Mascotas permitidas', 'No se fuma adentro', 'Expensas incluidas'] } }
   ];
@@ -143,8 +144,7 @@
   /* ===========================================================================
    * Estado y motor de afinidad
    * ======================================================================== */
-  const st = { i: 0, resp: {}, zona: ZONAS[0], presupuesto: 400000,
-               mazo: 0, match: null, vivienda: null };
+  const st = { i: 0, resp: {}, zona: ZONAS[0], presupuesto: 400000, match: null };
 
   function afinidad(cand) {
     let suma = 0, pesos_ = 0, detalle = [];
@@ -175,7 +175,7 @@
   const PANTALLAS = [
     'intro',
     ...PREGUNTAS.map((_, k) => 'preg' + k),
-    'ubicacion', 'perfil', 'swipe', 'match', 'viviendas', 'formalizar', 'cierre'
+    'ubicacion', 'perfil', 'swipe', 'match', 'formalizar', 'cierre'
   ];
 
   function pintar() {
@@ -186,7 +186,6 @@
     else if (p === 'perfil')      app.innerHTML = vPerfil();
     else if (p === 'swipe')       app.innerHTML = vSwipe();
     else if (p === 'match')       app.innerHTML = vMatch();
-    else if (p === 'viviendas')   app.innerHTML = vViviendas();
     else if (p === 'formalizar')  app.innerHTML = vFormalizar();
     else if (p === 'cierre')      app.innerHTML = vCierre();
 
@@ -291,81 +290,64 @@
         '<span>Ver personas compatibles</span></button></div></section>';
   }
 
-  /* ------------------------------------------------------------------ swipe -- */
-  function fichaHTML(c, fondo) {
-    const a = afinidad(c);
-    const items = a.detalle.map(d => {
+  /* ------------------------------------------------------ lista por afinidad -- */
+  const FOTO = n => 'assets/casas/' + n + '.jpg';
+  const AFIN_BAJA = 50;   // por debajo de este score la ficha se marca "afinidad baja"
+
+  /* Candidatos ordenados de mayor a menor afinidad con quien navega. */
+  const ordenados = () => CANDIDATOS.map(c => ({ c: c, a: afinidad(c) }))
+    .sort((x, y) => y.a.pct - x.a.pct);
+
+  function coincidencias(a) {
+    return '<div class="dpers__chips">' + a.detalle.map(d => {
       const v = d.s >= .75 ? 'si' : d.s >= .4 ? 'mas' : 'no';
-      const txt = v === 'si' ? 'Coinciden' : v === 'mas' ? 'Parecido' : 'Difieren';
-      return '<div class="dcoincid__item"><span class="dcoincid__ico" data-v="' + v + '">' +
-        (v === 'si' ? '✓' : v === 'mas' ? '~' : '✕') + '</span>' +
-        '<span><b>' + esc(d.dim) + ':</b> ' + txt + '</span></div>';
-    }).join('');
-    return '<article class="dficha' + (fondo ? ' dficha--fondo' : '') + '"' +
-      (fondo ? '' : ' id="dficha-activa"') + '>' +
-      '<div class="dficha__head">' + avatar(c) +
-      '<div><div class="dficha__nombre">' + esc(c.nombre) + ', ' + c.edad + '</div>' +
-      '<div class="dficha__meta">' + esc(c.ocupa) + '</div></div>' + anillo(a.pct) + '</div>' +
-      '<div class="dficha__hab"><span>🏠 Habitación en ' + esc(barrio(c)) + '</span>' +
-        '<b>' + pesos(c.hab.precio) + '<small> por mes</small></b></div>' +
-      '<p class="dficha__bio">' + esc(c.bio) + '</p>' +
-      '<div class="dcoincid">' + items + '</div>' +
-      (fondo ? '' : '<div class="dficha__pie">' +
-        '<button class="dbtn-circ dbtn-circ--no" data-swipe="no">✕ Pasar</button>' +
-        '<button class="dbtn-circ dbtn-circ--si" data-swipe="si">♥ Me interesa</button></div>') +
-      '</article>';
+      return '<span class="dpers__chip" data-v="' + v + '"><i>' +
+        (v === 'si' ? '✓' : v === 'mas' ? '~' : '✕') + '</i>' + esc(d.dim) + '</span>';
+    }).join('') + '</div>';
+  }
+
+  function persHTML(x, k) {
+    const c = x.c, a = x.a, h = c.hab, baja = a.pct < AFIN_BAJA;
+    const entra = h.precio <= st.presupuesto;
+    const rango = k === 0 ? 'Mejor afinidad' : baja ? 'Afinidad baja' : '#' + (k + 1) + ' en afinidad';
+    return '<article class="dpers' + (k === 0 ? ' dpers--top' : '') + (baja ? ' dpers--baja' : '') + '">' +
+      '<div class="dpers__foto" style="background-image:url(' + FOTO(h.fotos[0]) + ')">' +
+        '<span class="dpers__rango">' + rango + '</span>' +
+        '<span class="dpers__precio">' + pesos(h.precio) + '<small> por mes</small></span></div>' +
+      '<div class="dpers__cuerpo">' +
+        '<div class="dficha__head">' + avatar(c) +
+        '<div><div class="dficha__nombre">' + esc(c.nombre) + ', ' + c.edad + '</div>' +
+        '<div class="dficha__meta">' + esc(c.ocupa) + '</div></div>' + anillo(a.pct) + '</div>' +
+        '<p class="dpers__hab">🏠 Habitación en <b>' + esc(barrio(c)) + '</b> · ' + h.amb + ' ambientes · ' +
+          (entra ? 'entra en tu presupuesto' : 'se pasa de tu presupuesto') + '</p>' +
+        '<p class="dficha__bio">' + esc(c.bio) + '</p>' +
+        coincidencias(a) +
+        '<button class="btn ' + (baja ? 'btn--outline' : 'btn--primary') + ' dpers__cta" data-quiero="' +
+          CANDIDATOS.indexOf(c) + '"><span>♥ Me interesa</span></button>' +
+      '</div></article>';
   }
 
   function vSwipe() {
-    const c = CANDIDATOS[st.mazo], sig = CANDIDATOS[st.mazo + 1];
-    const mazo = c
-      ? (sig ? fichaHTML(sig, true) : '') + fichaHTML(c, false)
-      : '<div class="dficha dvacio"><div><p><strong>Por hoy no hay más perfiles.</strong></p>' +
-        '<p class="dnota">Te avisamos en cuanto se publique una habitación compatible en tu zona.</p>' +
-        '<button class="btn btn--outline" data-reset-mazo style="margin-top:16px">Ver de nuevo</button></div></div>';
     return '<section class="dpantalla"><div class="dcabecera">' +
-      '<p class="deyebrow">Personas compatibles</p>' +
+      '<p class="deyebrow">Personas compatibles · ordenadas por afinidad</p>' +
       '<h1 class="dtitulo">Tienen una habitación libre<br><span class="accent">y viven parecido a vos.</span></h1>' +
-      '<p class="dbajada">Cada perfil es alguien que ya vive en su casa y busca con quién compartirla. ' +
-        'Ves su afinidad con vos y su habitación. Si te interesa y a esa persona también, se abre ' +
-        'el chat: nadie puede escribirte sin que vos lo elijas.</p></div>' +
-      '<div class="dswipe"><div class="dmazo">' + mazo + '</div>' +
-      '<div><div class="dcard"><h3>¿Cómo calculamos la afinidad?</h3>' +
-      '<p class="dnota" style="margin-top:6px">Comparamos tus respuestas con las de la otra persona ' +
-        'en las seis dimensiones de convivencia y ponderamos cada una según cuántos conflictos ' +
-        'explica. No es una estimación: si cambiás una respuesta, el porcentaje cambia.</p>' +
-      '<p class="dnota" style="margin-top:12px">Ninguna persona ve tus datos de contacto hasta que ' +
-        'haya match. Todos los perfiles tienen identidad verificada.</p></div>' +
-      '<div class="dacciones">' + btnAtras + '</div></div></div></section>';
+      '<p class="dbajada">Cada una ya vive en su casa y busca con quién compartirla. Arriba, quien ' +
+        'más se parece a tu forma de vivir. Si te interesa y esa persona también te eligió, se abre el chat.</p>' +
+      '<details class="dcomo"><summary>¿Cómo calculamos la afinidad?</summary>' +
+        '<p>Comparamos tus respuestas con las de cada persona en las seis dimensiones de convivencia y ' +
+        'ponderamos cada una según cuántos conflictos explica. Si cambiás una respuesta, el orden cambia. ' +
+        'Nadie ve tus datos de contacto hasta que haya match, y todos los perfiles tienen identidad verificada.</p>' +
+      '</details></div>' +
+      '<div class="dlista">' + ordenados().map(persHTML).join('') + '</div>' +
+      '<div class="dacciones">' + btnAtras + '</div></section>';
   }
 
-  /* ------------------------------------------------------------------ match -- */
+  /* ------------------------------------------------- match + la casa elegida -- */
   function vMatch() {
-    const c = st.match || CANDIDATOS[0];
+    const c = st.match || ordenados()[0].c, h = c.hab;
     const a = afinidad(c);
-    const yo = { nombre: 'Vos', color: ['#0F1F3D', '#1E3A5F'] };
-    return '<section class="dpantalla dmatch">' +
-      '<div class="dmatch__avatares">' + avatar(yo) + avatar(c) + '</div>' +
-      '<p class="deyebrow">Es match</p>' +
-      '<h1 class="dtitulo">Vos y ' + esc(c.nombre) + '<br><span class="accent">se eligieron.</span></h1>' +
-      '<div class="dmatch__score">' + a.pct + '%<span>de afinidad de convivencia</span></div>' +
-      '<p class="dbajada" style="margin-inline:auto">Ahora se abre el chat seguro dentro de la ' +
-        'plataforma: sin dar el teléfono, con identidad verificada de las dos partes.</p>' +
-      '<div class="dchat">' +
-      '<div class="dmsg dmsg--ella">¡Hola! Vi que buscás por ' + esc(barrio(c)) + '. La habitación se libera el mes que viene, ¿te sirve?</div>' +
-      '<div class="dmsg dmsg--yo">Sí, justo estoy con los tiempos. ¿Me contás cómo es la casa?</div>' +
-      '<div class="dmsg dmsg--ella">Dale, ya está todo en Nidos: la habitación, las reglas y lo que se paga 🙌</div>' +
-      '</div>' +
-      '<div class="dacciones" style="justify-content:center">' + btnAtras +
-      '<button class="btn btn--primary btn--lg" data-ir="' + (st.i + 1) + '">' +
-        '<span>Ver la habitación de ' + esc(c.nombre) + '</span></button></div></section>';
-  }
-
-  /* ------------------------------------------------------------- habitación -- */
-  function vViviendas() {
-    const c = st.match || CANDIDATOS[0], h = c.hab;
     const entra = h.precio <= st.presupuesto;
-    const casa = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.5 12 3l9 7.5M5.5 12.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const yo = { nombre: 'Vos', color: ['#0F1F3D', '#1E3A5F'] };
     const chequeos = [
       ['Identidad verificada', 'de ' + c.nombre + ', que vive en la casa y ofrece la habitación.'],
       ['La habitación existe', 'fotos y datos revisados por Nidos antes de publicarla.'],
@@ -373,22 +355,27 @@
       [entra ? 'Entra en tu presupuesto' : 'Se pasa de tu presupuesto',
         pesos(h.precio) + ' por mes contra ' + pesos(st.presupuesto) + ' que marcaste.']
     ];
-    return '<section class="dpantalla"><div class="dcabecera">' +
-      '<p class="deyebrow">La habitación</p>' +
-      '<h1 class="dtitulo">La casa de ' + esc(c.nombre) + '<br><span class="accent">en ' + esc(barrio(c)) + '.</span></h1>' +
-      '<p class="dbajada">No hace falta alquilar un lugar nuevo: entrás a una casa que ya existe, con el ' +
-        'precio de tu habitación y las reglas de la casa a la vista desde el primer momento. Sin ' +
-        'garantía propietaria.</p></div>' +
+    const fotos = h.fotos.map((f, k) =>
+      '<div class="dgal__f' + (k === 0 ? ' dgal__f--main' : '') + '" style="background-image:url(' + FOTO(f) + ')"' +
+      ' role="img" aria-label="Foto de la casa de ' + esc(c.nombre) + '"></div>').join('');
+    return '<section class="dpantalla">' +
+      '<div class="dmatch2">' +
+        '<div class="dmatch__avatares">' + avatar(yo) + avatar(c) + '</div>' +
+        '<div><p class="deyebrow">Es match · ' + a.pct + '% de afinidad</p>' +
+        '<h1 class="dtitulo">Vos y ' + esc(c.nombre) + ' <span class="accent">se eligieron.</span></h1>' +
+        '<p class="dnota" style="margin-top:6px">' + esc(c.nombre) + ' ya había marcado tu perfil, así que se ' +
+          'abrió el chat seguro: sin dar el teléfono y con identidad verificada de las dos partes.</p></div>' +
+      '</div>' +
+      '<div class="dmsg dmsg--ella dmsg--suelto">¡Hola! La habitación se libera el mes que viene, ¿te sirve?</div>' +
+      '<h2 class="dsub">La casa de ' + esc(c.nombre) + ' en ' + esc(barrio(c)) + '</h2>' +
+      '<div class="dgal' + (h.fotos.length > 1 ? '' : ' dgal--una') + '">' + fotos + '</div>' +
       '<div class="dhab">' +
-        '<button class="dviv" data-viv="0">' +
-        '<span class="dviv__foto" style="background:linear-gradient(135deg,' + h.color[0] + ',' + h.color[1] + ')">' +
-        '<span class="dviv__tag">' + esc(h.tag) + '</span>' + casa + '</span>' +
-        '<span class="dviv__cuerpo"><span class="dviv__zona">' + esc(barrio(c)) + ' · ' + h.amb + ' ambientes</span>' +
+        '<div class="dcard"><div class="dviv__cuerpo" style="padding:0">' +
+        '<span class="dviv__zona">' + esc(barrio(c)) + ' · ' + h.amb + ' ambientes · ' + esc(h.tag) + '</span>' +
         '<span class="dviv__det">' + esc(h.det) + '</span>' +
-        '<span class="dviv__precio">' + pesos(h.precio) + '<small>tu habitación, por mes</small></span>' +
-        '<span class="dviv__total">Convivís con ' + esc(c.nombre) + ' · ' + usd(h.precio) + ' por mes</span>' +
+        '<span class="dviv__precio">' + pesos(h.precio) + '<small>tu habitación, por mes · ' + usd(h.precio) + '</small></span>' +
         '<span class="dviv__reglas">' + h.reglas.map(r => '<span>· ' + esc(r) + '</span>').join('') + '</span>' +
-        '<span class="dviv__cta">Quiero esta habitación →</span></span></button>' +
+        '</div></div>' +
         '<div class="dcard"><h3>Lo que ya chequeamos</h3><div class="dresumen" style="margin-top:14px">' +
         chequeos.map((x, k) =>
           '<div class="dresumen__it"><span class="dresumen__ok"' +
@@ -397,7 +384,9 @@
           '<span><b>' + esc(x[0]) + ':</b> ' + esc(x[1]) + '</span></div>').join('') +
         '</div></div>' +
       '</div>' +
-      '<div class="dacciones">' + btnAtras + '</div></section>';
+      '<div class="dacciones">' + btnAtras +
+      '<button class="btn btn--primary btn--lg" data-ir="' + (st.i + 1) + '">' +
+        '<span>Quiero esta habitación</span></button></div></section>';
   }
 
   /* ----------------------------------------------------------- formalizar --- */
@@ -509,56 +498,16 @@
       app.querySelector('#dpresval').innerHTML = pesos(st.presupuesto) + ' <span>por mes</span>';
     });
 
-    // swipe con botones y con arrastre
-    app.querySelectorAll('[data-swipe]').forEach(b =>
-      b.addEventListener('click', () => resolverSwipe(b.dataset.swipe === 'si')));
-    const ficha = app.querySelector('#dficha-activa');
-    if (ficha) arrastrar(ficha);
-
-    const reset = app.querySelector('[data-reset-mazo]');
-    if (reset) reset.addEventListener('click', () => { st.mazo = 0; pintar(); });
-
-    app.querySelectorAll('[data-viv]').forEach(b => b.addEventListener('click', () => {
-      st.vivienda = Number(b.dataset.viv);
+    // "Me interesa": en la demo la otra persona ya te eligió, así que hay match
+    app.querySelectorAll('[data-quiero]').forEach(b => b.addEventListener('click', () => {
+      st.match = CANDIDATOS[Number(b.dataset.quiero)];
       b.classList.add('is-sel');
       setTimeout(() => ir(st.i + 1), 180);
     }));
   }
 
-  function resolverSwipe(quiere) {
-    const ficha = app.querySelector('#dficha-activa');
-    const c = CANDIDATOS[st.mazo];
-    if (ficha) ficha.classList.add(quiere ? 'dficha--fuera-der' : 'dficha--fuera-izq');
-    setTimeout(() => {
-      if (quiere) { st.match = c; ir(st.i + 1); }
-      else { st.mazo += 1; pintar(); }
-    }, 260);
-  }
-
-  /* Arrastre horizontal de la ficha: gesto natural, decide al soltar. */
-  function arrastrar(el) {
-    let x0 = null;
-    el.addEventListener('pointerdown', e => {
-      if (e.target.closest('button')) return;
-      x0 = e.clientX; el.setPointerCapture(e.pointerId); el.style.transition = 'none';
-    });
-    el.addEventListener('pointermove', e => {
-      if (x0 === null) return;
-      const dx = e.clientX - x0;
-      el.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx / 22) + 'deg)';
-    });
-    const soltar = e => {
-      if (x0 === null) return;
-      const dx = e.clientX - x0; x0 = null;
-      el.style.transition = ''; el.style.transform = '';
-      if (Math.abs(dx) > 110) resolverSwipe(dx > 0);
-    };
-    el.addEventListener('pointerup', soltar);
-    el.addEventListener('pointercancel', () => { x0 = null; el.style.transition = ''; el.style.transform = ''; });
-  }
-
   $('#dreiniciar').addEventListener('click', () => {
-    st.i = 0; st.resp = {}; st.mazo = 0; st.match = null; st.vivienda = null;
+    st.i = 0; st.resp = {}; st.match = null;
     st.presupuesto = 400000; st.zona = ZONAS[0];
     history.replaceState(null, '', location.pathname);
     pintar();
@@ -571,7 +520,8 @@
     const p = new URLSearchParams(location.search).get('p');
     if (!p) return pintar();
 
-    const idx = /^\d+$/.test(p) ? Number(p) : PANTALLAS.indexOf(p);
+    const alias = { viviendas: 'match', lista: 'swipe' };
+    const idx = /^\d+$/.test(p) ? Number(p) : PANTALLAS.indexOf(alias[p] || p);
     if (idx < 1) return pintar();
 
     if (!Object.keys(st.resp).length) {
@@ -580,7 +530,6 @@
       PREGUNTAS.forEach(q => { st.resp[q.clave] = ejemplo[q.clave]; });
       st.presupuesto = 400000;
       st.match = CANDIDATOS[0];
-      st.vivienda = 0;
     }
     ir(idx);
   })();
