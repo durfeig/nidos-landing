@@ -157,6 +157,13 @@
 }
 .dscore__lbl { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--slate-light); margin-top: 5px; }
 
+.dficha__hab {
+  margin-top: 14px; padding: 10px 13px; border-radius: 12px; background: #F0FAF3;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  font-size: 14px; color: var(--navy); font-weight: 600;
+}
+.dficha__hab b { font-size: 16px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+.dficha__hab small { font-size: 12px; font-weight: 500; color: var(--slate); letter-spacing: 0; }
 .dficha__bio { margin-top: 16px; font-size: 14.5px; line-height: 1.5; color: var(--slate); }
 .dcoincid { margin-top: 16px; display: grid; gap: 7px; }
 .dcoincid__item { display: flex; align-items: center; gap: 9px; font-size: 14px; }
@@ -230,6 +237,7 @@
 }
 
 /* ---------------------------------------------------------- FORMALIZACIÓN -- */
+.dhab { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 34px; align-items: start; margin-top: 8px; }
 .dform { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 34px; align-items: start; }
 .dlineas { display: grid; gap: 13px; }
 .dlinea {
@@ -301,7 +309,7 @@
 
 /* ------------------------------------------------------------ RESPONSIVE --- */
 @media (max-width: 940px) {
-  .dintro, .dperfil, .dswipe, .dform { grid-template-columns: 1fr; gap: 30px; }
+  .dintro, .dperfil, .dswipe, .dform, .dhab { grid-template-columns: 1fr; gap: 30px; }
   .dviviendas { grid-template-columns: 1fr; }
   .dmazo { max-width: 460px; }
 }

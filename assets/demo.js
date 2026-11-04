@@ -2,7 +2,8 @@
  * NIDOS · Prototipo del producto
  * -----------------------------------------------------------------------------
  * Simula el flujo posterior al registro: perfil de convivencia → matching por
- * afinidad → viviendas compatibles → formalización.
+ * afinidad con quien ya vive en la casa y ofrece una habitación → la habitación
+ * verificada → formalización.
  *
  * El score de afinidad se CALCULA sobre las respuestas reales de quien navega
  * (no es un número fijo): así el prototipo muestra cómo funcionaría el motor.
@@ -97,38 +98,47 @@
                  'CABA · Belgrano, Núñez, Saavedra', 'CABA · Recoleta, Retiro, San Nicolás',
                  'GBA Norte · Vicente López, San Isidro, Tigre'];
 
-  /* --- Personas ficticias del prototipo (no son perfiles reales) ------------ */
+  /* --- Personas ficticias del prototipo (no son perfiles reales) ------------
+   * Cada una ya vive en su casa y ofrece una habitación libre: el que busca no
+   * sale a alquilar un lugar nuevo con otro, entra a un hogar que ya existe.
+   * hab.b es el índice del barrio dentro de la zona elegida (así la habitación
+   * siempre cae en la zona que marcó quien navega). */
   const CANDIDATOS = [
     { nombre: 'Sofía', edad: 26, ocupa: 'Diseñadora UX · trabaja híbrido', color: ['#6366F1', '#8B5CF6'],
-      bio: 'Busco compartir un 3 ambientes en zona norte de CABA. Cocino mucho, cuido mis plantas y necesito silencio a la mañana para trabajar.',
-      v: { horario: 1, orden: .5, social: .5, mascotas: .5, fumar: .5, casa: 1 } },
+      bio: 'Vivo en un 3 ambientes y se liberó la otra habitación. Cocino mucho, cuido mis plantas y necesito silencio a la mañana para trabajar.',
+      v: { horario: 1, orden: .5, social: .5, mascotas: .5, fumar: .5, casa: 1 },
+      /* Habitación tipo de la presentación: USD 250 por mes ($390.000 al TC 1.560) */
+      hab: { b: 1, amb: 3, precio: 390000, color: ['#0F766E', '#14B8A6'], tag: 'Verificada',
+             det: 'Habitación propia con placard · baño compartido · balcón',
+             reglas: ['Mascotas a convenir', 'No se fuma adentro', 'Expensas y wifi incluidos'] } },
     { nombre: 'Mateo', edad: 24, ocupa: 'Estudiante de Ingeniería · UBA', color: ['#0EA5E9', '#22D3EE'],
-      bio: 'Vengo de Mendoza a estudiar. Tengo una gata tranquila. Entreno temprano y suelo estar en la facultad todo el día.',
-      v: { horario: 0, orden: 1, social: 1, mascotas: 1, fumar: 0, casa: 0 } },
+      bio: 'Vine de Mendoza a estudiar y alquilo un 2 ambientes con una gata tranquila. Entreno temprano y estoy en la facultad todo el día.',
+      v: { horario: 0, orden: 1, social: 1, mascotas: 1, fumar: 0, casa: 0 },
+      hab: { b: 0, amb: 2, precio: 380000, color: ['#7C3AED', '#A78BFA'], tag: 'Verificada',
+             det: 'Habitación propia · baño compartido',
+             reglas: ['Hay una gata en casa', 'Balcón para fumar', 'Expensas aparte'] } },
     { nombre: 'Camila', edad: 29, ocupa: 'Enfermera · turnos rotativos', color: ['#F43F5E', '#FB7185'],
-      bio: 'Necesito una casa ordenada y tranquila porque duermo en horarios raros. No fumo y prefiero un ambiente sin humo.',
-      v: { horario: 0, orden: 0, social: 0, mascotas: 0, fumar: 0, casa: .5 } },
+      bio: 'Tengo una habitación libre en mi casa. Necesito orden y tranquilidad porque duermo en horarios raros, y prefiero un ambiente sin humo.',
+      v: { horario: 0, orden: 0, social: 0, mascotas: 0, fumar: 0, casa: .5 },
+      hab: { b: 2, amb: 3, precio: 360000, color: ['#B45309', '#F59E0B'], tag: 'Nueva',
+             det: 'Habitación propia · baño compartido · patio',
+             reglas: ['Sin mascotas', 'No se fuma', 'Silencio después de las 23'] } },
     { nombre: 'Tomás', edad: 27, ocupa: 'Desarrollador · remoto', color: ['#059669', '#34D399'],
-      bio: 'Trabajo desde casa, así que valoro un buen escritorio y wifi. Me gusta cocinar los fines de semana con amigos.',
-      v: { horario: 1, orden: .5, social: 1, mascotas: .5, fumar: .5, casa: 1 } }
+      bio: 'Trabajo desde casa y busco a alguien para la segunda habitación. Valoro un buen escritorio y wifi, y cocino los fines de semana con amigos.',
+      v: { horario: 1, orden: .5, social: 1, mascotas: .5, fumar: .5, casa: 1 },
+      hab: { b: 0, amb: 3, precio: 400000, color: ['#1D4ED8', '#60A5FA'], tag: 'Verificada',
+             det: 'Habitación propia con escritorio · baño compartido',
+             reglas: ['Mascotas permitidas', 'No se fuma adentro', 'Expensas incluidas'] } }
   ];
 
   const ETIQUETAS = { horario: 'Horarios', orden: 'Orden y limpieza', social: 'Uso social de la casa',
                       mascotas: 'Mascotas', fumar: 'Humo', casa: 'Tiempo en casa' };
 
-  /* --- Propiedades ficticias aptas para compartir --------------------------- */
-  const VIVIENDAS = [
-    /* Habitación tipo de la presentación: USD 250 por persona ($390.000 al TC 1.560) */
-    { zona: 'Villa Crespo', calle: 'Aguirre y Julián Álvarez', amb: 3, personas: 2, total: 760000,
-      color: ['#0F766E', '#14B8A6'], tag: 'Verificada',
-      reglas: ['Mascotas permitidas', 'No se fuma adentro', 'Expensas incluidas'] },
-    { zona: 'Caballito', calle: 'Rojas y Rivadavia', amb: 3, personas: 2, total: 780000,
-      color: ['#7C3AED', '#A78BFA'], tag: 'Verificada',
-      reglas: ['Sin mascotas', 'No se fuma', 'Expensas y wifi incluidos'] },
-    { zona: 'Belgrano', calle: 'Olazábal y Cabildo', amb: 3, personas: 2, total: 720000,
-      color: ['#B45309', '#F59E0B'], tag: 'Nueva',
-      reglas: ['Mascotas a convenir', 'Balcón para fumadores', 'Expensas aparte'] }
-  ];
+  /* Barrio de la habitación: uno de los barrios de la zona elegida. */
+  const barrio = c => {
+    const lista = st.zona.split('·').pop().split(',').map(s => s.trim());
+    return lista[c.hab.b % lista.length];
+  };
 
   /* ===========================================================================
    * Estado y motor de afinidad
@@ -194,16 +204,16 @@
   function vIntro() {
     const pasos = [
       ['Tu perfil de convivencia', 'Horarios, orden, mascotas y estilo de vida'],
-      ['Personas compatibles', 'Te mostramos con quién tenés más afinidad'],
-      ['El lugar', 'Espacios aptos para compartir, con el precio total a la vista'],
+      ['Personas compatibles', 'Quienes tienen una habitación libre y viven parecido a vos'],
+      ['La habitación', 'En una casa que ya existe, con el precio y las reglas a la vista'],
       ['La mudanza', 'Acuerdo por escrito y depósito custodiado. Pagás solo si te mudás']
     ];
     return '<section class="dpantalla dintro">' +
       '<div><p class="deyebrow">Bienvenido a Nidos</p>' +
       '<h1 class="dtitulo">Empecemos por vos:<br><span class="accent">cómo te gusta vivir.</span></h1>' +
       '<p class="dbajada">Seis preguntas rápidas sobre tu día a día. Con eso buscamos personas ' +
-        'compatibles y lugares que entren en tu presupuesto, para que compartir casa sea una ' +
-        'elección y no una lotería.</p>' +
+        'compatibles que tienen una habitación libre en tu presupuesto, para que compartir casa ' +
+        'sea una elección y no una lotería.</p>' +
       '<p class="dnota">Toma menos de dos minutos. Podés cambiar tus respuestas cuando quieras.</p>' +
       '<div class="dacciones"><button class="btn btn--primary btn--lg" data-ir="1">' +
         '<span>Armar mi perfil</span>' +
@@ -236,8 +246,8 @@
     return '<section class="dpantalla dpreg"><div class="dcabecera">' +
       '<p class="deyebrow">Perfil de convivencia · zona y presupuesto</p>' +
       '<h1 class="dtitulo">¿Dónde y con cuánto?</h1>' +
-      '<p class="dbajada">Es tu parte del alquiler, no el total de la propiedad. Con esto filtramos ' +
-        'qué espacios tienen sentido para vos.</p></div>' +
+      '<p class="dbajada">Es lo que podés pagar por tu habitación, por mes. Con esto filtramos ' +
+        'qué habitaciones tienen sentido para vos.</p></div>' +
       '<div class="dcard"><div class="campo"><label class="campo__label" for="dzona">Zona preferida</label>' +
       '<select id="dzona">' + ZONAS.map(z =>
         '<option' + (z === st.zona ? ' selected' : '') + '>' + esc(z) + '</option>').join('') + '</select></div>' +
@@ -296,6 +306,8 @@
       '<div class="dficha__head">' + avatar(c) +
       '<div><div class="dficha__nombre">' + esc(c.nombre) + ', ' + c.edad + '</div>' +
       '<div class="dficha__meta">' + esc(c.ocupa) + '</div></div>' + anillo(a.pct) + '</div>' +
+      '<div class="dficha__hab"><span>🏠 Habitación en ' + esc(barrio(c)) + '</span>' +
+        '<b>' + pesos(c.hab.precio) + '<small> por mes</small></b></div>' +
       '<p class="dficha__bio">' + esc(c.bio) + '</p>' +
       '<div class="dcoincid">' + items + '</div>' +
       (fondo ? '' : '<div class="dficha__pie">' +
@@ -309,13 +321,14 @@
     const mazo = c
       ? (sig ? fichaHTML(sig, true) : '') + fichaHTML(c, false)
       : '<div class="dficha dvacio"><div><p><strong>Por hoy no hay más perfiles.</strong></p>' +
-        '<p class="dnota">Te avisamos en cuanto se sumen personas compatibles en tu zona.</p>' +
+        '<p class="dnota">Te avisamos en cuanto se publique una habitación compatible en tu zona.</p>' +
         '<button class="btn btn--outline" data-reset-mazo style="margin-top:16px">Ver de nuevo</button></div></div>';
     return '<section class="dpantalla"><div class="dcabecera">' +
       '<p class="deyebrow">Personas compatibles</p>' +
-      '<h1 class="dtitulo">Estas personas buscan<br><span class="accent">algo parecido a vos.</span></h1>' +
-      '<p class="dbajada">Cada perfil muestra su afinidad con el tuyo. Si te interesa alguien ' +
-        'y a esa persona también, se abre el chat: nadie puede escribirte sin que vos lo elijas.</p></div>' +
+      '<h1 class="dtitulo">Tienen una habitación libre<br><span class="accent">y viven parecido a vos.</span></h1>' +
+      '<p class="dbajada">Cada perfil es alguien que ya vive en su casa y busca con quién compartirla. ' +
+        'Ves su afinidad con vos y su habitación. Si te interesa y a esa persona también, se abre ' +
+        'el chat: nadie puede escribirte sin que vos lo elijas.</p></div>' +
       '<div class="dswipe"><div class="dmazo">' + mazo + '</div>' +
       '<div><div class="dcard"><h3>¿Cómo calculamos la afinidad?</h3>' +
       '<p class="dnota" style="margin-top:6px">Comparamos tus respuestas con las de la otra persona ' +
@@ -339,48 +352,58 @@
       '<p class="dbajada" style="margin-inline:auto">Ahora se abre el chat seguro dentro de la ' +
         'plataforma: sin dar el teléfono, con identidad verificada de las dos partes.</p>' +
       '<div class="dchat">' +
-      '<div class="dmsg dmsg--ella">¡Hola! Vi que buscás en la misma zona. ¿Te sirve mudarte el mes que viene?</div>' +
-      '<div class="dmsg dmsg--yo">Sí, justo estoy con los tiempos. ¿Vemos los lugares que nos aparecen a los dos?</div>' +
-      '<div class="dmsg dmsg--ella">Dale, hay tres que entran en los dos presupuestos 🙌</div>' +
+      '<div class="dmsg dmsg--ella">¡Hola! Vi que buscás por ' + esc(barrio(c)) + '. La habitación se libera el mes que viene, ¿te sirve?</div>' +
+      '<div class="dmsg dmsg--yo">Sí, justo estoy con los tiempos. ¿Me contás cómo es la casa?</div>' +
+      '<div class="dmsg dmsg--ella">Dale, ya está todo en Nidos: la habitación, las reglas y lo que se paga 🙌</div>' +
       '</div>' +
       '<div class="dacciones" style="justify-content:center">' + btnAtras +
       '<button class="btn btn--primary btn--lg" data-ir="' + (st.i + 1) + '">' +
-        '<span>Ver viviendas para los dos</span></button></div></section>';
+        '<span>Ver la habitación de ' + esc(c.nombre) + '</span></button></div></section>';
   }
 
-  /* -------------------------------------------------------------- viviendas -- */
+  /* ------------------------------------------------------------- habitación -- */
   function vViviendas() {
-    const c = st.match || CANDIDATOS[0];
-    const lista = VIVIENDAS.map(v => {
-      const pp = v.total / v.personas;
-      return Object.assign({}, v, { pp: pp, dif: Math.abs(pp - st.presupuesto) });
-    }).sort((a, b) => a.dif - b.dif);
+    const c = st.match || CANDIDATOS[0], h = c.hab;
+    const entra = h.precio <= st.presupuesto;
     const casa = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.5 12 3l9 7.5M5.5 12.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const chequeos = [
+      ['Identidad verificada', 'de ' + c.nombre + ', que vive en la casa y ofrece la habitación.'],
+      ['La habitación existe', 'fotos y datos revisados por Nidos antes de publicarla.'],
+      ['Semáforo de subalquiler', 'si ' + c.nombre + ' alquila, confirmamos que puede compartir la casa.'],
+      [entra ? 'Entra en tu presupuesto' : 'Se pasa de tu presupuesto',
+        pesos(h.precio) + ' por mes contra ' + pesos(st.presupuesto) + ' que marcaste.']
+    ];
     return '<section class="dpantalla"><div class="dcabecera">' +
-      '<p class="deyebrow">Matching habitacional</p>' +
-      '<h1 class="dtitulo">Tres lugares para vos y ' + esc(c.nombre) + '</h1>' +
-      '<p class="dbajada">Espacios aptos para compartir que entran en los dos presupuestos, con el ' +
-        'precio total a la vista y las reglas de la casa desde el primer momento. Ninguno pide ' +
+      '<p class="deyebrow">La habitación</p>' +
+      '<h1 class="dtitulo">La casa de ' + esc(c.nombre) + '<br><span class="accent">en ' + esc(barrio(c)) + '.</span></h1>' +
+      '<p class="dbajada">No hace falta alquilar un lugar nuevo: entrás a una casa que ya existe, con el ' +
+        'precio de tu habitación y las reglas de la casa a la vista desde el primer momento. Sin ' +
         'garantía propietaria.</p></div>' +
-      '<div class="dviviendas">' + lista.map((v, k) =>
-        '<button class="dviv' + (st.vivienda === k ? ' is-sel' : '') + '" data-viv="' + k + '">' +
-        '<span class="dviv__foto" style="background:linear-gradient(135deg,' + v.color[0] + ',' + v.color[1] + ')">' +
-        '<span class="dviv__tag">' + esc(v.tag) + '</span>' + casa + '</span>' +
-        '<span class="dviv__cuerpo"><span class="dviv__zona">' + esc(v.zona) + '</span>' +
-        '<span class="dviv__det">' + esc(v.calle) + ' · ' + v.amb + ' ambientes · ' + v.personas + ' personas</span>' +
-        '<span class="dviv__precio">' + pesos(v.pp) + '<small>por persona, por mes</small></span>' +
-        '<span class="dviv__total">Total del alquiler: ' + pesos(v.total) + '</span>' +
-        '<span class="dviv__reglas">' + v.reglas.map(r => '<span>· ' + esc(r) + '</span>').join('') + '</span>' +
-        '<span class="dviv__cta">Elegir este →</span></span></button>').join('') + '</div>' +
-      '<p class="dnota">Elegí uno para ver las condiciones de ingreso y el acuerdo.</p>' +
+      '<div class="dhab">' +
+        '<button class="dviv" data-viv="0">' +
+        '<span class="dviv__foto" style="background:linear-gradient(135deg,' + h.color[0] + ',' + h.color[1] + ')">' +
+        '<span class="dviv__tag">' + esc(h.tag) + '</span>' + casa + '</span>' +
+        '<span class="dviv__cuerpo"><span class="dviv__zona">' + esc(barrio(c)) + ' · ' + h.amb + ' ambientes</span>' +
+        '<span class="dviv__det">' + esc(h.det) + '</span>' +
+        '<span class="dviv__precio">' + pesos(h.precio) + '<small>tu habitación, por mes</small></span>' +
+        '<span class="dviv__total">Convivís con ' + esc(c.nombre) + ' · ' + usd(h.precio) + ' por mes</span>' +
+        '<span class="dviv__reglas">' + h.reglas.map(r => '<span>· ' + esc(r) + '</span>').join('') + '</span>' +
+        '<span class="dviv__cta">Quiero esta habitación →</span></span></button>' +
+        '<div class="dcard"><h3>Lo que ya chequeamos</h3><div class="dresumen" style="margin-top:14px">' +
+        chequeos.map((x, k) =>
+          '<div class="dresumen__it"><span class="dresumen__ok"' +
+          (k === 3 && !entra ? ' style="background:#F59E0B"' : '') + '>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span>' +
+          '<span><b>' + esc(x[0]) + ':</b> ' + esc(x[1]) + '</span></div>').join('') +
+        '</div></div>' +
+      '</div>' +
       '<div class="dacciones">' + btnAtras + '</div></section>';
   }
 
   /* ----------------------------------------------------------- formalizar --- */
   function vFormalizar() {
-    const lista = VIVIENDAS.map(v => Object.assign({}, v, { pp: v.total / v.personas,
-      dif: Math.abs(v.total / v.personas - st.presupuesto) })).sort((a, b) => a.dif - b.dif);
-    const v = lista[st.vivienda || 0];
+    const c = st.match || CANDIDATOS[0];
+    const v = { zona: barrio(c), pp: c.hab.precio };
     const adelanto = v.pp * MESES_AD;
     const fee      = v.pp * PCT_FEE;
     const ico = d => '<span class="dlinea__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg></span>';
@@ -388,7 +411,8 @@
     return '<section class="dpantalla"><div class="dcabecera">' +
       '<p class="deyebrow">Condiciones de ingreso</p>' +
       '<h1 class="dtitulo">De un acuerdo de palabra<br><span class="accent">a uno por escrito.</span></h1>' +
-      '<p class="dbajada">Elegiste ' + esc(v.zona) + ' a ' + pesos(v.pp) + ' por persona. Buscar y ' +
+      '<p class="dbajada">Elegiste la habitación de ' + esc(c.nombre) + ' en ' + esc(v.zona) + ' a ' +
+        pesos(v.pp) + ' por mes. Buscar y ' +
         'hacer match no se paga: Nidos cobra solo si te mudás. Esto es todo lo que pagás para ' +
         'entrar, sin garantía propietaria y sin adelantar medio año.</p></div>' +
       '<div class="dform"><div class="dlineas">' +
@@ -403,7 +427,7 @@
       '<span class="dsplit"><span class="dsplit__it"><b>Verificación</b> de identidad de las dos partes</span>' +
       '<span class="dsplit__it"><b>Acuerdo de convivencia y económico</b> por escrito y firmado</span>' +
       '<span class="dsplit__it"><b>Depósito custodiado</b> en Mercado Pago: se libera cuando entrás y está todo como se acordó</span>' +
-      '<span class="dsplit__it"><b>Semáforo de subalquiler</b>: chequeamos que el lugar se pueda compartir</span></span></span>' +
+      '<span class="dsplit__it"><b>Semáforo de subalquiler</b>: chequeamos que la casa se pueda compartir</span></span></span>' +
       '<span class="dlinea__monto"><b>' + pesos(P_PACK) + '</b><span>' + usd(P_PACK) + ' · una vez, al cerrar</span></span></div>' +
 
       '<div class="dlinea">' + ico('<path d="M4 7.5h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-11Z"/><path d="M4 11h16M8 15.5h3"/>') +
@@ -414,7 +438,7 @@
 
       '<div class="dlinea dlinea--otrolado">' + ico('<path d="M3 10.5 12 3l9 7.5M5.5 12.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-7.5"/><path d="M9.5 21v-5h5v5"/>') +
       '<span class="dlinea__txt"><strong>Fee de éxito · no lo pagás vos</strong>' +
-      '<span>Quien ofrece el lugar paga el ' + Math.round(PCT_FEE * 100) + '% de un mes, descontado ' +
+      '<span>' + esc(c.nombre) + ', que ofrece la habitación, paga el ' + Math.round(PCT_FEE * 100) + '% de un mes, descontado ' +
         'del depósito cuando se libera. Si no hay mudanza, nadie paga nada.</span></span>' +
       '<span class="dlinea__monto"><b>' + pesos(fee) + '</b><span>' + usd(fee) + ' · una vez, solo si se cierra</span></span></div>' +
       '</div>' +
@@ -426,7 +450,7 @@
         '<b class="bueno">' + pesos(P_PACK) + ' · ' + usd(P_PACK) + '</b></div>' +
       '<div class="dcompara__fila"><span>Depósito de un mes, custodiado (vuelve al final)</span>' +
         '<b class="neutro">' + pesos(v.pp) + '</b></div>' +
-      '<p class="dcompara__nota">Calculado sobre el alquiler que elegiste. El depósito no es un ' +
+      '<p class="dcompara__nota">Calculado sobre el precio de tu habitación. El depósito no es un ' +
         'costo: queda en custodia y se devuelve según el acuerdo. Próximamente: garantía digital ' +
         'para alquilar un lugar entero sin garante, emitida por una aseguradora autorizada.</p></div></div>' +
       '<div class="dacciones">' + btnAtras +
@@ -437,21 +461,19 @@
   /* ----------------------------------------------------------------- cierre -- */
   function vCierre() {
     const c = st.match || CANDIDATOS[0];
-    const lista = VIVIENDAS.map(v => Object.assign({}, v, { pp: v.total / v.personas,
-      dif: Math.abs(v.total / v.personas - st.presupuesto) })).sort((a, b) => a.dif - b.dif);
-    const v = lista[st.vivienda || 0];
+    const v = { zona: barrio(c) };
     const items = [
-      ['Semáforo de subalquiler', 'Confirmamos con quien ofrece el lugar que se puede compartir antes de que pongas un peso.'],
-      ['Firma digital', 'Te llega el acuerdo de convivencia y económico para firmar con ' + c.nombre + ' y con quien ofrece el lugar.'],
+      ['Semáforo de subalquiler', 'Confirmamos que ' + c.nombre + ' puede compartir la casa (si alquila, con el aval del dueño) antes de que pongas un peso.'],
+      ['Firma digital', 'Te llega el acuerdo de convivencia y económico para firmar con ' + c.nombre + '.'],
       ['Depósito custodiado', 'Lo pagás por Mercado Pago y queda retenido: se libera cuando entrás y confirmás que todo está como se acordó.'],
-      ['Coordinación de la mudanza', 'Fecha de entrada, llaves y estado del lugar documentado con fotos.'],
+      ['Coordinación de la mudanza', 'Fecha de entrada, llaves y estado de la habitación documentado con fotos.'],
       ['Soporte durante todo el alquiler', 'Canal de reporte y mediación si algo de la convivencia se complica.']
     ];
     return '<section class="dpantalla dcierre">' +
       '<div class="dcierre__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></div>' +
       '<h1 class="dtitulo">Tu solicitud está<br><span class="accent">en marcha.</span></h1>' +
-      '<p class="dbajada" style="margin-inline:auto">Reservamos ' + esc(v.zona) + ' para vos y ' +
-        esc(c.nombre) + ' por 48 horas mientras se completa el acuerdo. Esto es lo que sigue:</p>' +
+      '<p class="dbajada" style="margin-inline:auto">Reservamos la habitación de ' + esc(c.nombre) +
+        ' en ' + esc(v.zona) + ' por 48 horas mientras se completa el acuerdo. Esto es lo que sigue:</p>' +
       '<div class="dresumen">' + items.map(x =>
         '<div class="dresumen__it"><span class="dresumen__ok">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span>' +
